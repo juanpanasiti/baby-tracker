@@ -41,6 +41,7 @@ Baby Tracker helps parents and caregivers log and monitor essential baby routine
 ```
 ├── App.tsx                        # Main application root & providers
 ├── app.json                       # Expo configuration, plugins & Android permissions
+├── assets/                        # Brand & visual assets (icon, adaptive-icon, splash, favicon)
 ├── src/
 │   ├── components/                # Reusable UI components & modals
 │   │   ├── AppointmentModal.tsx   # Medical appointment scheduler
