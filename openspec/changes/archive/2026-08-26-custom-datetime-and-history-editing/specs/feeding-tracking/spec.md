@@ -1,8 +1,4 @@
-## Purpose
-
-Enables logging of breastfeeding sessions and bottle feedings, tracking volumes and durations, setting custom event timestamps, editing existing records, and triggering prompts to schedule next feeding alarms.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Log Breastfeeding Session
 The system SHALL support logging breastfeeding sessions with active side tracking (Left, Right, or Both), duration in seconds or minutes, a configurable timestamp (defaulting to current date and time), and optional notes.
@@ -26,16 +22,7 @@ The system SHALL support logging bottle feedings with recorded volume in millili
 - **WHEN** the user modifies the date and time values in the bottle feeding modal and saves
 - **THEN** the system SHALL persist the bottle feeding record with the selected custom timestamp
 
-### Requirement: Prompt for Next Feeding Reminder
-The system SHALL display an interactive prompt upon saving any feeding log offering preset intervals (e.g., 2.5h, 3h, 3.5h, 4h, or custom time) to schedule a local push notification alarm.
-
-#### Scenario: User accepts feeding reminder prompt
-- **WHEN** the user saves a feeding log and selects "3 hours" from the post-save reminder prompt
-- **THEN** the system SHALL schedule a local push alarm 3 hours from the feeding timestamp
-
-#### Scenario: User dismisses feeding reminder prompt
-- **WHEN** the user saves a feeding log and taps "Skip" or dismisses the reminder prompt
-- **THEN** the system SHALL persist the log without scheduling an alarm
+## ADDED Requirements
 
 ### Requirement: Edit Existing Feeding Record
 The system SHALL allow users to edit all attributes of an existing feeding entry directly from the history timeline, including feeding type, side, duration, amount, notes, and timestamp.

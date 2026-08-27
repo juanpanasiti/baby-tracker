@@ -18,6 +18,8 @@
     "emptyState": "Aún no hay registros",
     "ago": "hace {{time}}",
     "justNow": "Recién",
+    "now": "Ahora",
+    "dateTime": "Fecha y Hora",
     "minutes": "{{count}} min",
     "hours": "{{count}} h",
     "days": "{{count}} días",
@@ -45,6 +47,7 @@
   },
   "feeding": {
     "title": "Registrar Toma",
+    "editTitle": "Editar Toma",
     "type": "Tipo de Alimentación",
     "breast": "Pecho",
     "bottle": "Biberón",
@@ -72,6 +75,7 @@
   },
   "diaper": {
     "title": "Registrar Pañal",
+    "editTitle": "Editar Pañal",
     "type": "Estado del Pañal",
     "pee": "Pis",
     "poop": "Caca",

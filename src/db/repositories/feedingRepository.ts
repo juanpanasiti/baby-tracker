@@ -36,6 +36,13 @@ export const feedingRepository = {
     return result[0];
   },
 
+  async updateFeeding(id: string, data: Partial<Omit<Feeding, 'id' | 'babyId'>>): Promise<Feeding | null> {
+    const db = getDb();
+    await db.update(feedings).set(data).where(eq(feedings.id, id));
+    const result = await db.select().from(feedings).where(eq(feedings.id, id));
+    return result[0] ?? null;
+  },
+
   async deleteFeeding(id: string): Promise<void> {
     const db = getDb();
     await db.delete(feedings).where(eq(feedings.id, id));

@@ -7,11 +7,14 @@ interface DiaperState {
   latestDiaper: Diaper | null;
   isLoading: boolean;
   isDiaperModalOpen: boolean;
+  editingDiaper: Diaper | null;
 
   loadDiapers: (babyId: string) => Promise<void>;
   createDiaper: (babyId: string, data: Omit<NewDiaper, 'id' | 'babyId'>) => Promise<Diaper>;
+  updateDiaper: (babyId: string, id: string, data: Partial<Omit<Diaper, 'id' | 'babyId'>>) => Promise<void>;
   deleteDiaper: (babyId: string, id: string) => Promise<void>;
   openDiaperModal: () => void;
+  openEditDiaperModal: (diaper: Diaper) => void;
   closeDiaperModal: () => void;
 }
 
@@ -20,6 +23,7 @@ export const useDiaperStore = create<DiaperState>((set, get) => ({
   latestDiaper: null,
   isLoading: false,
   isDiaperModalOpen: false,
+  editingDiaper: null,
 
   loadDiapers: async (babyId: string) => {
     set({ isLoading: true });
@@ -38,8 +42,14 @@ export const useDiaperStore = create<DiaperState>((set, get) => ({
       babyId,
     });
     const diapers = await diaperRepository.getDiapersByBabyId(babyId);
-    set({ diapers, latestDiaper: created, isDiaperModalOpen: false });
+    set({ diapers, latestDiaper: created, isDiaperModalOpen: false, editingDiaper: null });
     return created;
+  },
+
+  updateDiaper: async (babyId: string, id: string, data) => {
+    await diaperRepository.updateDiaper(id, data);
+    await get().loadDiapers(babyId);
+    set({ isDiaperModalOpen: false, editingDiaper: null });
   },
 
   deleteDiaper: async (babyId: string, id: string) => {
@@ -47,6 +57,7 @@ export const useDiaperStore = create<DiaperState>((set, get) => ({
     await get().loadDiapers(babyId);
   },
 
-  openDiaperModal: () => set({ isDiaperModalOpen: true }),
-  closeDiaperModal: () => set({ isDiaperModalOpen: false }),
+  openDiaperModal: () => set({ isDiaperModalOpen: true, editingDiaper: null }),
+  openEditDiaperModal: (diaper: Diaper) => set({ isDiaperModalOpen: true, editingDiaper: diaper }),
+  closeDiaperModal: () => set({ isDiaperModalOpen: false, editingDiaper: null }),
 }));

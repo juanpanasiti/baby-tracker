@@ -15,6 +15,7 @@ import { useThemeStore } from '../store/useThemeStore';
 import { useFeedingStore } from '../store/useFeedingStore';
 import { useBabyStore } from '../store/useBabyStore';
 import { X, Check, Play, Pause, RotateCcw, Milk, Heart } from 'lucide-react-native';
+import { DateTimePickerInput } from './DateTimePickerInput';
 
 export function FeedingModal() {
   const { t } = useTranslation();
@@ -22,8 +23,10 @@ export function FeedingModal() {
   const baby = useBabyStore((state) => state.baby);
   const {
     isFeedingModalOpen,
+    editingFeeding,
     closeFeedingModal,
     createFeeding,
+    updateFeeding,
     timerSide,
     timerSeconds,
     isTimerRunning,
@@ -38,6 +41,7 @@ export function FeedingModal() {
   const [selectedSide, setSelectedSide] = useState<'left' | 'right' | 'both'>('left');
   const [manualDurationMins, setManualDurationMins] = useState('15');
   const [amountMl, setAmountMl] = useState('120');
+  const [timestamp, setTimestamp] = useState(Date.now());
   const [notes, setNotes] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -60,6 +64,37 @@ export function FeedingModal() {
     }
   }, [timerSide]);
 
+  // Synchronize modal state when opened or when editing item changes
+  useEffect(() => {
+    if (isFeedingModalOpen) {
+      if (editingFeeding) {
+        setFeedingType(editingFeeding.type);
+        if (editingFeeding.type === 'breast') {
+          setSelectedSide(editingFeeding.breastSide || 'left');
+          setManualDurationMins(
+            editingFeeding.durationSeconds
+              ? Math.max(1, Math.round(editingFeeding.durationSeconds / 60)).toString()
+              : '15'
+          );
+        } else {
+          setAmountMl(editingFeeding.amountMl ? editingFeeding.amountMl.toString() : '120');
+        }
+        setTimestamp(editingFeeding.timestamp);
+        setNotes(editingFeeding.notes || '');
+        setErrorMsg('');
+        resetTimer();
+      } else {
+        setFeedingType('breast');
+        setSelectedSide('left');
+        setManualDurationMins('15');
+        setAmountMl('120');
+        setTimestamp(Date.now());
+        setNotes('');
+        setErrorMsg('');
+      }
+    }
+  }, [isFeedingModalOpen, editingFeeding, resetTimer]);
+
   const formatTimerDisplay = (totalSecs: number) => {
     const mins = Math.floor(totalSecs / 60);
     const secs = totalSecs % 60;
@@ -75,12 +110,24 @@ export function FeedingModal() {
         setErrorMsg('Please enter a valid amount in ml');
         return;
       }
-      await createFeeding(baby.id, {
-        type: 'bottle',
-        amountMl: ml,
-        notes: notes.trim() || null,
-        timestamp: Date.now(),
-      });
+
+      if (editingFeeding) {
+        await updateFeeding(baby.id, editingFeeding.id, {
+          type: 'bottle',
+          amountMl: ml,
+          breastSide: null,
+          durationSeconds: null,
+          notes: notes.trim() || null,
+          timestamp,
+        });
+      } else {
+        await createFeeding(baby.id, {
+          type: 'bottle',
+          amountMl: ml,
+          notes: notes.trim() || null,
+          timestamp,
+        });
+      }
     } else {
       // Breastfeeding
       let durationSec = timerSeconds;
@@ -89,13 +136,24 @@ export function FeedingModal() {
         durationSec = (!isNaN(parsedMins) && parsedMins > 0 ? parsedMins : 15) * 60;
       }
 
-      await createFeeding(baby.id, {
-        type: 'breast',
-        breastSide: selectedSide,
-        durationSeconds: durationSec,
-        notes: notes.trim() || null,
-        timestamp: Date.now(),
-      });
+      if (editingFeeding) {
+        await updateFeeding(baby.id, editingFeeding.id, {
+          type: 'breast',
+          breastSide: selectedSide,
+          durationSeconds: durationSec,
+          amountMl: null,
+          notes: notes.trim() || null,
+          timestamp,
+        });
+      } else {
+        await createFeeding(baby.id, {
+          type: 'breast',
+          breastSide: selectedSide,
+          durationSeconds: durationSec,
+          notes: notes.trim() || null,
+          timestamp,
+        });
+      }
     }
   };
 
@@ -110,7 +168,9 @@ export function FeedingModal() {
         <View style={[styles.modalContainer, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={[styles.title, { color: colors.text }]}>{t('feeding.title')}</Text>
+            <Text style={[styles.title, { color: colors.text }]}>
+              {editingFeeding ? t('feeding.editTitle') : t('feeding.title')}
+            </Text>
             <TouchableOpacity onPress={closeFeedingModal} style={styles.closeBtn}>
               <X size={24} color={colors.textMuted} />
             </TouchableOpacity>
@@ -316,6 +376,12 @@ export function FeedingModal() {
                 </View>
               </View>
             )}
+
+            {/* Date & Time */}
+            <DateTimePickerInput
+              value={timestamp}
+              onChange={setTimestamp}
+            />
 
             {/* Notes */}
             <View style={styles.inputGroup}>

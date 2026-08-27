@@ -10,6 +10,7 @@ interface FeedingState {
   activeReminder: Reminder | null;
   isLoading: boolean;
   isFeedingModalOpen: boolean;
+  editingFeeding: Feeding | null;
 
   // Active Nursing Timer
   timerSide: 'left' | 'right' | 'both' | null;
@@ -23,11 +24,13 @@ interface FeedingState {
   // Actions
   loadFeedings: (babyId: string) => Promise<void>;
   createFeeding: (babyId: string, data: Omit<NewFeeding, 'id' | 'babyId'>) => Promise<Feeding>;
+  updateFeeding: (babyId: string, id: string, data: Partial<Omit<Feeding, 'id' | 'babyId'>>) => Promise<void>;
   deleteFeeding: (babyId: string, id: string) => Promise<void>;
   scheduleNextFeedingReminder: (babyId: string, babyName: string, intervalMinutes: number) => Promise<void>;
   cancelActiveReminder: (babyId: string) => Promise<void>;
 
   openFeedingModal: () => void;
+  openEditFeedingModal: (feeding: Feeding) => void;
   closeFeedingModal: () => void;
   closeReminderPrompt: () => void;
 
@@ -45,6 +48,8 @@ export const useFeedingStore = create<FeedingState>((set, get) => ({
   activeReminder: null,
   isLoading: false,
   isFeedingModalOpen: false,
+
+  editingFeeding: null,
 
   timerSide: null,
   timerSeconds: 0,
@@ -76,6 +81,7 @@ export const useFeedingStore = create<FeedingState>((set, get) => ({
       feedings,
       latestFeeding: created,
       isFeedingModalOpen: false,
+      editingFeeding: null,
       isReminderPromptOpen: true,
       savedFeedingTimestamp: created.timestamp,
     });
@@ -84,6 +90,12 @@ export const useFeedingStore = create<FeedingState>((set, get) => ({
     get().resetTimer();
 
     return created;
+  },
+
+  updateFeeding: async (babyId: string, id: string, data) => {
+    await feedingRepository.updateFeeding(id, data);
+    await get().loadFeedings(babyId);
+    set({ isFeedingModalOpen: false, editingFeeding: null });
   },
 
   deleteFeeding: async (babyId: string, id: string) => {
@@ -123,8 +135,9 @@ export const useFeedingStore = create<FeedingState>((set, get) => ({
     }
   },
 
-  openFeedingModal: () => set({ isFeedingModalOpen: true }),
-  closeFeedingModal: () => set({ isFeedingModalOpen: false }),
+  openFeedingModal: () => set({ isFeedingModalOpen: true, editingFeeding: null }),
+  openEditFeedingModal: (feeding: Feeding) => set({ isFeedingModalOpen: true, editingFeeding: feeding }),
+  closeFeedingModal: () => set({ isFeedingModalOpen: false, editingFeeding: null }),
   closeReminderPrompt: () => set({ isReminderPromptOpen: false }),
 
   startTimer: (side) => {

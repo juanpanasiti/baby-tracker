@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useThemeStore } from '../store/useThemeStore';
 import { type Feeding, type Diaper } from '../db/schema';
 import { formatRelativeTime, formatTimeOnly } from '../utils/date';
-import { Trash2, Milk, Heart, AlertTriangle } from 'lucide-react-native';
+import { Trash2, Milk, Heart, AlertTriangle, Pencil } from 'lucide-react-native';
 
 export type ActivityItem =
   | ({ itemType: 'feeding' } & Feeding)
@@ -12,10 +12,11 @@ export type ActivityItem =
 
 interface TimelineItemProps {
   item: ActivityItem;
+  onEdit: () => void;
   onDelete: () => void;
 }
 
-export function TimelineItem({ item, onDelete }: TimelineItemProps) {
+export function TimelineItem({ item, onEdit, onDelete }: TimelineItemProps) {
   const { t, i18n } = useTranslation();
   const colors = useThemeStore((state) => state.colors);
   const isSpanish = i18n.language === 'es';
@@ -53,9 +54,14 @@ export function TimelineItem({ item, onDelete }: TimelineItemProps) {
             </View>
           </View>
 
-          <TouchableOpacity onPress={confirmDelete} style={styles.deleteBtn}>
-            <Trash2 size={16} color={colors.textMuted} />
-          </TouchableOpacity>
+          <View style={styles.actionsRow}>
+            <TouchableOpacity onPress={onEdit} style={styles.actionBtn}>
+              <Pencil size={16} color={colors.primary} />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={confirmDelete} style={styles.actionBtn}>
+              <Trash2 size={16} color={colors.textMuted} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Badges / Metrics */}
@@ -116,9 +122,14 @@ export function TimelineItem({ item, onDelete }: TimelineItemProps) {
           </View>
         </View>
 
-        <TouchableOpacity onPress={confirmDelete} style={styles.deleteBtn}>
-          <Trash2 size={16} color={colors.textMuted} />
-        </TouchableOpacity>
+        <View style={styles.actionsRow}>
+          <TouchableOpacity onPress={onEdit} style={styles.actionBtn}>
+            <Pencil size={16} color={colors.primary} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={confirmDelete} style={styles.actionBtn}>
+            <Trash2 size={16} color={colors.textMuted} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Badges / Metrics */}
@@ -187,7 +198,12 @@ const styles = StyleSheet.create({
     fontSize: 13,
     marginTop: 2,
   },
-  deleteBtn: {
+  actionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  actionBtn: {
     padding: 6,
   },
   badgesRow: {

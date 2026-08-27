@@ -18,6 +18,8 @@
     "emptyState": "No records yet",
     "ago": "{{time}} ago",
     "justNow": "Just now",
+    "now": "Now",
+    "dateTime": "Date & Time",
     "minutes": "{{count}} min",
     "hours": "{{count}} hr",
     "days": "{{count}} days",
@@ -45,6 +47,7 @@
   },
   "feeding": {
     "title": "Log Feeding",
+    "editTitle": "Edit Feeding",
     "type": "Feeding Type",
     "breast": "Breastfeeding",
     "bottle": "Bottle",
@@ -72,6 +75,7 @@
   },
   "diaper": {
     "title": "Log Diaper",
+    "editTitle": "Edit Diaper",
     "type": "Diaper Status",
     "pee": "Pee",
     "poop": "Poop",

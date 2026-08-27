@@ -43,13 +43,14 @@ export function DashboardScreen({ onNavigateToTimeline, onNavigateToAppointments
     activeReminder,
     cancelActiveReminder,
     openFeedingModal,
+    openEditFeedingModal,
     isTimerRunning,
     timerSeconds,
     deleteFeeding,
     loadFeedings,
   } = useFeedingStore();
 
-  const { latestDiaper, diapers, openDiaperModal, deleteDiaper, loadDiapers } = useDiaperStore();
+  const { latestDiaper, diapers, openDiaperModal, openEditDiaperModal, deleteDiaper, loadDiapers } = useDiaperStore();
   const { nextAppointment, openAppointmentModal, loadAppointments } = useAppointmentStore();
 
   const [refreshing, setRefreshing] = React.useState(false);
@@ -194,6 +195,13 @@ export function DashboardScreen({ onNavigateToTimeline, onNavigateToAppointments
           <TimelineItem
             key={`${act.itemType}-${act.id}`}
             item={act}
+            onEdit={() => {
+              if (act.itemType === 'feeding') {
+                openEditFeedingModal(act);
+              } else {
+                openEditDiaperModal(act);
+              }
+            }}
             onDelete={() => {
               if (!baby) return;
               if (act.itemType === 'feeding') {

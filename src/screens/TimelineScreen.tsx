@@ -21,8 +21,8 @@ export function TimelineScreen() {
   const colors = useThemeStore((state) => state.colors);
   const baby = useBabyStore((state) => state.baby);
 
-  const { feedings, deleteFeeding } = useFeedingStore();
-  const { diapers, deleteDiaper } = useDiaperStore();
+  const { feedings, deleteFeeding, openEditFeedingModal } = useFeedingStore();
+  const { diapers, deleteDiaper, openEditDiaperModal } = useDiaperStore();
 
   const [filter, setFilter] = useState<FilterType>('all');
 
@@ -92,6 +92,13 @@ export function TimelineScreen() {
         renderItem={({ item }) => (
           <TimelineItem
             item={item}
+            onEdit={() => {
+              if (item.itemType === 'feeding') {
+                openEditFeedingModal(item);
+              } else {
+                openEditDiaperModal(item);
+              }
+            }}
             onDelete={() => {
               if (!baby) return;
               if (item.itemType === 'feeding') {

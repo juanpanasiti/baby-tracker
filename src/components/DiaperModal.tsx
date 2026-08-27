@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Modal,
   View,
@@ -16,29 +16,59 @@ import { useThemeStore } from '../store/useThemeStore';
 import { useDiaperStore } from '../store/useDiaperStore';
 import { useBabyStore } from '../store/useBabyStore';
 import { X, Check, AlertCircle } from 'lucide-react-native';
+import { DateTimePickerInput } from './DateTimePickerInput';
 
 export function DiaperModal() {
   const { t } = useTranslation();
   const colors = useThemeStore((state) => state.colors);
   const baby = useBabyStore((state) => state.baby);
-  const { isDiaperModalOpen, closeDiaperModal, createDiaper } = useDiaperStore();
+  const {
+    isDiaperModalOpen,
+    editingDiaper,
+    closeDiaperModal,
+    createDiaper,
+    updateDiaper,
+  } = useDiaperStore();
 
   const [type, setType] = useState<'pee' | 'poop' | 'both'>('pee');
   const [hasRash, setHasRash] = useState(false);
+  const [timestamp, setTimestamp] = useState(Date.now());
   const [notes, setNotes] = useState('');
+
+  useEffect(() => {
+    if (isDiaperModalOpen) {
+      if (editingDiaper) {
+        setType(editingDiaper.type);
+        setHasRash(editingDiaper.hasRash);
+        setTimestamp(editingDiaper.timestamp);
+        setNotes(editingDiaper.notes || '');
+      } else {
+        setType('pee');
+        setHasRash(false);
+        setTimestamp(Date.now());
+        setNotes('');
+      }
+    }
+  }, [isDiaperModalOpen, editingDiaper]);
 
   const handleSave = async () => {
     if (!baby) return;
-    await createDiaper(baby.id, {
-      type,
-      hasRash,
-      notes: notes.trim() || null,
-      timestamp: Date.now(),
-    });
-    // Reset form
-    setType('pee');
-    setHasRash(false);
-    setNotes('');
+
+    if (editingDiaper) {
+      await updateDiaper(baby.id, editingDiaper.id, {
+        type,
+        hasRash,
+        notes: notes.trim() || null,
+        timestamp,
+      });
+    } else {
+      await createDiaper(baby.id, {
+        type,
+        hasRash,
+        notes: notes.trim() || null,
+        timestamp,
+      });
+    }
   };
 
   const getActiveColor = (currentType: 'pee' | 'poop' | 'both') => {
@@ -56,7 +86,9 @@ export function DiaperModal() {
         <View style={[styles.modalContainer, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={[styles.title, { color: colors.text }]}>{t('diaper.title')}</Text>
+            <Text style={[styles.title, { color: colors.text }]}>
+              {editingDiaper ? t('diaper.editTitle') : t('diaper.title')}
+            </Text>
             <TouchableOpacity onPress={closeDiaperModal} style={styles.closeBtn}>
               <X size={24} color={colors.textMuted} />
             </TouchableOpacity>
@@ -125,6 +157,12 @@ export function DiaperModal() {
                 thumbColor="#FFF"
               />
             </View>
+
+            {/* Date & Time */}
+            <DateTimePickerInput
+              value={timestamp}
+              onChange={setTimestamp}
+            />
 
             {/* Notes Input */}
             <View style={styles.inputGroup}>

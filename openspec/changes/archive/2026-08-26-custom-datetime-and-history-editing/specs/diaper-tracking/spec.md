@@ -1,8 +1,4 @@
-## Purpose
-
-Enables logging of diaper changes with categorization for wet, dirty, or mixed diapers, rash presence, custom timestamps, editing existing records, and notes.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Log Diaper Change
 The system SHALL allow users to log diaper change events categorized as 'pee', 'poop', or 'both' (pee and poop), along with a configurable timestamp (defaulting to current date and time), diaper rash boolean indicator, and optional notes.
@@ -18,6 +14,8 @@ The system SHALL allow users to log diaper change events categorized as 'pee', '
 #### Scenario: User views recent diaper history
 - **WHEN** the user navigates to the history/timeline view
 - **THEN** the system SHALL display diaper logs sorted in reverse chronological order with clear visual badges for pee/poop/both
+
+## ADDED Requirements
 
 ### Requirement: Edit Existing Diaper Record
 The system SHALL allow users to edit all attributes of an existing diaper entry directly from the history timeline, including type (pee, poop, both), rash indicator, notes, and timestamp.

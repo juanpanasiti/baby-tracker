@@ -7,15 +7,18 @@ A modern, local-first mobile application built with React Native and Expo (prima
 Baby Tracker helps parents and caregivers log and monitor essential baby routines with zero cloud dependency:
 - **Baby Profile**: Store and manage baby information including photo avatar, name, sex, and birth date with automated age calculations.
 - **Feedings**:
-  - **Breastfeeding**: Nursing timer with left, right, or both side tracking and manual adjustment.
+  - **Breastfeeding**: Nursing timer with left, right, or both side tracking and manual duration setting.
   - **Bottle Feeding**: Milliliter (ml) volume logging with quick-preset pill selectors.
+  - **Custom Date & Time**: Set exact event timestamp with quick offsets (`Now`, `-15m`, `-30m`, `-1h`) and manual date/time inputs.
   - **Next Feeding Alarms**: Interactive prompt following each log with intervals (2h, 2.5h, 3h, 3.5h, 4h, or custom) to schedule local high-priority notifications.
-- **Diaper Changes**: Track diaper events (pee, poop, or both), rash indicators, and care notes.
+- **Diaper Changes**: Track diaper events (pee, poop, or both), rash indicators, custom timestamps, and care notes.
+- **Timeline & History Editing**:
+  - Reverse chronological timeline with filter tabs for all events, feedings, or diapers.
+  - Full inline editing support: tap the edit pencil icon on any feeding or diaper log to update timestamp, amounts, duration, sides, rash status, or notes.
 - **Medical Appointments & Calendar**:
   - Schedule pediatrician checkups and specialist visits.
   - Sync events directly to the native device calendar (`expo-calendar`).
   - Configure automated advance notifications (24 hours and 2 hours prior).
-- **Timeline & Activity History**: Reverse chronological timeline with filter tabs for all events, feedings, or diapers.
 - **Theming & Localization**:
   - **Themes**: Dark Mode (default) and Light Mode, persisted locally.
   - **Localization**: English (default) and Spanish, persisted locally.
@@ -42,13 +45,14 @@ Baby Tracker helps parents and caregivers log and monitor essential baby routine
 │   ├── components/                # Reusable UI components & modals
 │   │   ├── AppointmentModal.tsx   # Medical appointment scheduler
 │   │   ├── BottomNavBar.tsx       # Bottom navigation tabs
-│   │   ├── DiaperModal.tsx        # Diaper change logger
-│   │   ├── FeedingModal.tsx       # Breast & bottle feeding logger
+│   │   ├── DateTimePickerInput.tsx # Reusable datetime picker with quick presets
+│   │   ├── DiaperModal.tsx        # Diaper change logger & editor
+│   │   ├── FeedingModal.tsx       # Breast & bottle feeding logger & editor
 │   │   ├── FeedingReminderPrompt.tsx # Next feeding alarm scheduler
 │   │   ├── ProfileHeader.tsx      # Baby info & age calculation banner
 │   │   ├── ProfileModal.tsx       # Baby profile creation & editor
 │   │   ├── QuickActionButton.tsx  # 1-tap quick action buttons
-│   │   └── TimelineItem.tsx       # Reverse chronological log card
+│   │   └── TimelineItem.tsx       # Interactive activity card with edit & delete
 │   ├── db/
 │   │   ├── client.ts              # SQLite database client & table init
 │   │   ├── schema.ts              # Drizzle ORM schema & types

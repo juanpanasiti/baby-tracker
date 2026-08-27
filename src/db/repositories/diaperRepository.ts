@@ -36,6 +36,13 @@ export const diaperRepository = {
     return result[0];
   },
 
+  async updateDiaper(id: string, data: Partial<Omit<Diaper, 'id' | 'babyId'>>): Promise<Diaper | null> {
+    const db = getDb();
+    await db.update(diapers).set(data).where(eq(diapers.id, id));
+    const result = await db.select().from(diapers).where(eq(diapers.id, id));
+    return result[0] ?? null;
+  },
+
   async deleteDiaper(id: string): Promise<void> {
     const db = getDb();
     await db.delete(diapers).where(eq(diapers.id, id));
