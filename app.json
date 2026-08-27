@@ -1,0 +1,78 @@
+{
+  "expo": {
+    "name": "Baby Tracker",
+    "slug": "baby-tracker",
+    "version": "1.0.0",
+    "scheme": "babytracker",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#121212"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.babytracker.app",
+      "infoPlist": {
+        "NSRemindersUsageDescription": "Allow Baby Tracker to set reminders for baby appointments.",
+        "NSCalendarsUsageDescription": "Allow Baby Tracker to sync appointments with your calendar.",
+        "NSPhotoLibraryUsageDescription": "Allow Baby Tracker to choose photos for your baby profile."
+      }
+    },
+    "android": {
+      "package": "com.babytracker.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#121212"
+      },
+      "permissions": [
+        "android.permission.RECEIVE_BOOT_COMPLETED",
+        "android.permission.SCHEDULE_EXACT_ALARM",
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.READ_CALENDAR",
+        "android.permission.WRITE_CALENDAR",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_CALENDAR",
+        "android.permission.WRITE_CALENDAR",
+        "android.permission.RECORD_AUDIO"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-sqlite",
+      "expo-localization",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#6366F1"
+        }
+      ],
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "Allow Baby Tracker to sync appointments with your device calendar."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Baby Tracker to select a profile photo for your baby."
+        }
+      ],
+      "expo-asset",
+      "expo-font"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "4a5c701e-98e2-4c09-b1f4-3b0a715ae277"
+      }
+    }
+  }
+}

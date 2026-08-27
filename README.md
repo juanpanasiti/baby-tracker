@@ -1,0 +1,105 @@
+# Baby Tracker
+
+A modern, local-first mobile application built with React Native and Expo (primarily targeting Android) to effortlessly track baby care activities, feeding times, diaper changes, and medical appointments with local alarms and calendar synchronization.
+
+## Overview
+
+Baby Tracker helps parents and caregivers log and monitor essential baby routines with zero cloud dependency:
+- **Baby Profile**: Store and manage baby information including photo avatar, name, sex, and birth date with automated age calculations.
+- **Feedings**:
+  - **Breastfeeding**: Nursing timer with left, right, or both side tracking and manual adjustment.
+  - **Bottle Feeding**: Milliliter (ml) volume logging with quick-preset pill selectors.
+  - **Next Feeding Alarms**: Interactive prompt following each log with intervals (2h, 2.5h, 3h, 3.5h, 4h, or custom) to schedule local high-priority notifications.
+- **Diaper Changes**: Track diaper events (pee, poop, or both), rash indicators, and care notes.
+- **Medical Appointments & Calendar**:
+  - Schedule pediatrician checkups and specialist visits.
+  - Sync events directly to the native device calendar (`expo-calendar`).
+  - Configure automated advance notifications (24 hours and 2 hours prior).
+- **Timeline & Activity History**: Reverse chronological timeline with filter tabs for all events, feedings, or diapers.
+- **Theming & Localization**:
+  - **Themes**: Dark Mode (default) and Light Mode, persisted locally.
+  - **Localization**: English (default) and Spanish, persisted locally.
+
+## Tech Stack
+
+- **Framework**: React Native + Expo (SDK 52)
+- **Language**: TypeScript (strictly typed, `noImplicitAny`)
+- **Database & Storage**: `expo-sqlite` + `drizzle-orm` (type-safe SQLite persistence)
+- **State Management**: `zustand` + `@react-native-async-storage/async-storage`
+- **Native Integrations**:
+  - `expo-notifications`: Local push notifications and Android notification channels
+  - `expo-calendar`: Native device calendar event creation and sync
+  - `expo-image-picker`: Baby profile avatar selection
+- **Localization**: `i18next` + `react-i18next` + `expo-localization`
+- **Icons**: `lucide-react-native`
+
+## Project Structure
+
+```
+├── App.tsx                        # Main application root & providers
+├── app.json                       # Expo configuration, plugins & Android permissions
+├── src/
+│   ├── components/                # Reusable UI components & modals
+│   │   ├── AppointmentModal.tsx   # Medical appointment scheduler
+│   │   ├── BottomNavBar.tsx       # Bottom navigation tabs
+│   │   ├── DiaperModal.tsx        # Diaper change logger
+│   │   ├── FeedingModal.tsx       # Breast & bottle feeding logger
+│   │   ├── FeedingReminderPrompt.tsx # Next feeding alarm scheduler
+│   │   ├── ProfileHeader.tsx      # Baby info & age calculation banner
+│   │   ├── ProfileModal.tsx       # Baby profile creation & editor
+│   │   ├── QuickActionButton.tsx  # 1-tap quick action buttons
+│   │   └── TimelineItem.tsx       # Reverse chronological log card
+│   ├── db/
+│   │   ├── client.ts              # SQLite database client & table init
+│   │   ├── schema.ts              # Drizzle ORM schema & types
+│   │   └── repositories/          # Type-safe CRUD repositories
+│   ├── i18n/                      # English & Spanish translations
+│   ├── screens/                   # Main screens (Dashboard, Timeline, Appointments, Settings)
+│   ├── services/                  # Notification & Calendar native services
+│   ├── store/                     # Zustand stores (Theme, Locale, Baby, Feeding, Diaper, Appointment)
+│   ├── theme/                     # Dark & Light color palettes
+│   └── utils/                     # Age calculation, ID generator & date formatters
+└── openspec/                      # Specification & change proposals
+```
+
+## Development & Setup
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) (v18+ LTS recommended)
+- [Expo Go](https://expo.dev/go) app on a physical device, or Android Studio Emulator
+
+### Installation
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd baby-tracker
+
+# Install dependencies
+npm install
+```
+
+### Running the App
+
+```bash
+# Start the Expo development server
+npx expo start
+```
+
+### Running Tests
+
+```bash
+# Execute Jest unit test suite
+npm test
+```
+
+## Contributing & Specification Workflow
+
+This project uses [OpenSpec](https://github.com/Fission-AI/OpenSpec) for specification-driven development:
+- Propose changes: `/opsx-propose "change name"`
+- Implement changes: `/opsx-apply "change name"`
+- Sync and archive: `/opsx-sync` and `/opsx-archive`
+
+All code, comments, documentation, and pull requests must strictly be in **English**.
+

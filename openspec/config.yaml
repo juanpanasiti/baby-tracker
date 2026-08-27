@@ -1,0 +1,73 @@
+schema: spec-driven
+
+# Project Context
+# Injected into the AI context when generating OpenSpec artifacts.
+context: |
+  Tech Stack: React Native, Expo, TypeScript.
+  Target Platform: Primarily Android (mobile-first).
+  Storage: Local database (e.g., SQLite) for complete offline-first persistence.
+  
+  Application Domain (Baby Tracker):
+    - Baby Profile: Store photo/avatar, name, sex, and birth date.
+    - Diaper Tracking: Track diaper changes with options for pee, poop, or both (pee and poop).
+    - Bath Tracking: Log bath times and relevant notes.
+    - Feeding Tracking:
+      - Milk: Breastfeeding (breast / nursing) or Bottle (with volume recorded in ml).
+      - Complementary Feeding: Solid foods / meal logs.
+    - Appointments & Calendar:
+      - Schedule and manage medical appointments / checkups.
+      - Send local reminders and notifications for upcoming appointments.
+      - Add and sync appointment events with the native device calendar.
+
+  Theming & Localization:
+    - Theming: Support Light and Dark themes. Default theme is Dark.
+    - Localization (i18n): Support English and Spanish. Default language is English.
+    - Persistence: User theme and language preferences must be saved locally and restored on every app startup.
+
+  Conventions:
+    - Strictly typed TypeScript (no `any`).
+    - Functional components with React Hooks.
+    - All code, comments, documentation, and OpenSpec artifacts MUST be written in English.
+    - Clean architecture with clear separation between UI, state management, and services.
+    - Always review and update README.md whenever a code change affects setup, features, or project structure.
+
+# Per-Artifact Rules
+# Rules applied when creating specific OpenSpec planning artifacts.
+rules:
+  proposal:
+    - All content and descriptions must be written in English.
+    - Do not generate artifacts with assumed information; ask for clarification on any unstated requirements.
+    - Explicitly define User Impact, Goals, and Non-Goals.
+    - Document all known constraints and dependencies.
+  specs:
+    - All content, requirements, and scenarios must be written in English.
+    - Specify clear, testable acceptance criteria for every capability.
+    - Use strict delta format (ADD, MODIFY, REMOVE) matching the capability structure.
+  tasks:
+    - All task descriptions, comments, and instructions must be written in English.
+    - Enumerate tasks and subtasks hierarchically (e.g., Task 1 with subtasks 1.1, 1.2; Task 2 with 2.1, 2.2).
+    - Place all test creation and execution tasks near the end of the implementation plan.
+    - Include a task/subtask to review and update README.md if the changes affect project usage, setup, or architecture.
+    - Include a final validation task at the very end to verify that the implementation satisfies all requirements established in the proposal.
+
+# Per-Operation Guidance
+# Advisory guidance for AI behavior during OpenSpec workflow operations.
+operations:
+  explore:
+    guidance:
+      - Do not make assumptions about ambiguous requirements; proactively ask clarifying questions for all doubts.
+      - Explore alternative solutions and trade-offs before settling on an approach.
+      - Keep thinking and exploration separate from writing code.
+  apply:
+    guidance:
+      - Execute strictly one task/subtask at a time.
+      - Do not proceed to the next task before completing, validating, and giving confirmation for the current one.
+      - All generated code, comments, documentation, and commit/task messages must strictly be in English.
+      - Mark completed tasks in tasks.md as soon as each task or subtask is done.
+      - Always check the README.md during implementation and update it if the changes warrant documentation updates.
+      - If a task encounters unexpected issues, stop and report immediately.
+  archive:
+    guidance:
+      - Verify that all proposal goals and acceptance criteria were met before finalizing.
+      - Ensure README.md is up to date with the completed changes.
+      - Summarize changes and outcomes in English in the archive output.

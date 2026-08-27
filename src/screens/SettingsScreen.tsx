@@ -1,0 +1,206 @@
+import React from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Switch,
+} from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { useThemeStore } from '../store/useThemeStore';
+import { useLocaleStore } from '../store/useLocaleStore';
+import { useBabyStore } from '../store/useBabyStore';
+import {
+  Moon,
+  Sun,
+  Globe,
+  User,
+  Info,
+  ChevronRight,
+  ShieldCheck,
+} from 'lucide-react-native';
+
+export function SettingsScreen() {
+  const { t } = useTranslation();
+  const { themeMode, colors, setThemeMode } = useThemeStore();
+  const { language, setLanguage } = useLocaleStore();
+  const { baby, openProfileModal } = useBabyStore();
+
+  const isDark = themeMode === 'dark';
+
+  return (
+    <ScrollView
+      style={[styles.container, { backgroundColor: colors.background }]}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* Baby Profile Shortcut */}
+      <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+        {t('profile.title')}
+      </Text>
+      <TouchableOpacity
+        style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}
+        onPress={openProfileModal}
+      >
+        <View style={styles.rowLeft}>
+          <View style={[styles.iconBg, { backgroundColor: colors.primary + '20' }]}>
+            <User size={20} color={colors.primary} />
+          </View>
+          <View>
+            <Text style={[styles.cardTitle, { color: colors.text }]}>
+              {baby ? baby.name : t('profile.createTitle')}
+            </Text>
+            <Text style={[styles.cardSubtitle, { color: colors.textMuted }]}>
+              {t('profile.editTitle')}
+            </Text>
+          </View>
+        </View>
+        <ChevronRight size={20} color={colors.textMuted} />
+      </TouchableOpacity>
+
+      {/* Appearance / Theme */}
+      <Text style={[styles.sectionTitle, { color: colors.textSecondary, marginTop: 24 }]}>
+        {t('settings.appearance')}
+      </Text>
+      <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+        <View style={styles.rowLeft}>
+          <View style={[styles.iconBg, { backgroundColor: isDark ? colors.primary + '20' : colors.warning + '20' }]}>
+            {isDark ? <Moon size={20} color={colors.primary} /> : <Sun size={20} color={colors.warning} />}
+          </View>
+          <View>
+            <Text style={[styles.cardTitle, { color: colors.text }]}>
+              {isDark ? t('settings.darkTheme') : t('settings.lightTheme')}
+            </Text>
+            <Text style={[styles.cardSubtitle, { color: colors.textMuted }]}>
+              {t('settings.theme')}
+            </Text>
+          </View>
+        </View>
+        <Switch
+          value={isDark}
+          onValueChange={(val) => setThemeMode(val ? 'dark' : 'light')}
+          trackColor={{ false: colors.surfaceSubtle, true: colors.primary }}
+          thumbColor="#FFF"
+        />
+      </View>
+
+      {/* Language */}
+      <Text style={[styles.sectionTitle, { color: colors.textSecondary, marginTop: 24 }]}>
+        {t('settings.language')}
+      </Text>
+      <View style={[styles.cardColumn, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+        {/* English */}
+        <TouchableOpacity
+          style={[styles.langRow, { borderBottomColor: colors.cardBorder }]}
+          onPress={() => setLanguage('en')}
+        >
+          <View style={styles.rowLeft}>
+            <View style={[styles.iconBg, { backgroundColor: colors.info + '20' }]}>
+              <Globe size={20} color={colors.info} />
+            </View>
+            <Text style={[styles.cardTitle, { color: colors.text }]}>{t('settings.english')}</Text>
+          </View>
+          {language === 'en' && (
+            <View style={[styles.activeDot, { backgroundColor: colors.primary }]} />
+          )}
+        </TouchableOpacity>
+
+        {/* Spanish */}
+        <TouchableOpacity style={styles.langRow} onPress={() => setLanguage('es')}>
+          <View style={styles.rowLeft}>
+            <View style={[styles.iconBg, { backgroundColor: colors.info + '20' }]}>
+              <Globe size={20} color={colors.info} />
+            </View>
+            <Text style={[styles.cardTitle, { color: colors.text }]}>{t('settings.spanish')}</Text>
+          </View>
+          {language === 'es' && (
+            <View style={[styles.activeDot, { backgroundColor: colors.primary }]} />
+          )}
+        </TouchableOpacity>
+      </View>
+
+      {/* App Info */}
+      <Text style={[styles.sectionTitle, { color: colors.textSecondary, marginTop: 24 }]}>
+        {t('settings.about')}
+      </Text>
+      <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+        <View style={styles.rowLeft}>
+          <View style={[styles.iconBg, { backgroundColor: colors.success + '20' }]}>
+            <ShieldCheck size={20} color={colors.success} />
+          </View>
+          <View>
+            <Text style={[styles.cardTitle, { color: colors.text }]}>Baby Tracker</Text>
+            <Text style={[styles.cardSubtitle, { color: colors.textMuted }]}>
+              {t('settings.version')}
+            </Text>
+          </View>
+        </View>
+        <Info size={20} color={colors.textMuted} />
+      </View>
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  content: {
+    padding: 16,
+    paddingBottom: 32,
+  },
+  sectionTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    marginBottom: 10,
+    marginLeft: 4,
+  },
+  card: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    borderRadius: 18,
+    borderWidth: 1,
+  },
+  cardColumn: {
+    borderRadius: 18,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  langRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    borderBottomWidth: 1,
+  },
+  rowLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
+  iconBg: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  cardSubtitle: {
+    fontSize: 13,
+    marginTop: 2,
+  },
+  activeDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+});
