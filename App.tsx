@@ -17,6 +17,7 @@ import { useFeedingStore } from './src/store/useFeedingStore';
 import { useDiaperStore } from './src/store/useDiaperStore';
 import { useAppointmentStore } from './src/store/useAppointmentStore';
 
+import { usePreferencesStore } from './src/store/usePreferencesStore';
 import { DashboardScreen } from './src/screens/DashboardScreen';
 import { TimelineScreen } from './src/screens/TimelineScreen';
 import { AppointmentsScreen } from './src/screens/AppointmentsScreen';
@@ -26,6 +27,7 @@ import { BottomNavBar, type TabScreen } from './src/components/BottomNavBar';
 import { ProfileModal } from './src/components/ProfileModal';
 import { FeedingModal } from './src/components/FeedingModal';
 import { FeedingReminderPrompt } from './src/components/FeedingReminderPrompt';
+import { EditReminderModal } from './src/components/EditReminderModal';
 import { DiaperModal } from './src/components/DiaperModal';
 import { AppointmentModal } from './src/components/AppointmentModal';
 
@@ -46,8 +48,8 @@ export default function App() {
         // 1. Initialize SQLite tables
         await initDatabase();
 
-        // 2. Load saved theme and language preferences
-        await Promise.all([loadSavedTheme(), loadSavedLanguage()]);
+        // 2. Load saved theme, language, and alert preferences
+        await Promise.all([loadSavedTheme(), loadSavedLanguage(), usePreferencesStore.getState().loadPreferences()]);
 
         // 3. Load Baby Profile
         await loadBaby();
@@ -118,6 +120,7 @@ export default function App() {
       <ProfileModal />
       <FeedingModal />
       <FeedingReminderPrompt />
+      <EditReminderModal />
       <DiaperModal />
       <AppointmentModal />
     </SafeAreaView>

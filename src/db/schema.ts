@@ -59,6 +59,8 @@ export const reminders = sqliteTable('reminders', {
   type: text('type', { enum: ['feeding', 'appointment'] }).notNull(),
   targetTime: integer('target_time').notNull(),
   notificationId: text('notification_id').notNull(),
+  alertMode: text('alert_mode', { enum: ['notification', 'alarm'] }).default('alarm'),
+  soundName: text('sound_name'),
   isActive: integer('is_active', { mode: 'boolean' }).default(true).notNull(),
   createdAt: integer('created_at').notNull(),
 });

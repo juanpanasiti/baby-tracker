@@ -19,15 +19,28 @@ import {
   Info,
   ChevronRight,
   ShieldCheck,
+  Bell,
+  Volume2,
+  Sparkles,
 } from 'lucide-react-native';
+import { usePreferencesStore, ALARM_SOUNDS, type AlarmSoundId } from '../store/usePreferencesStore';
+import { notificationService } from '../services/notificationService';
 
 export function SettingsScreen() {
   const { t } = useTranslation();
   const { themeMode, colors, setThemeMode } = useThemeStore();
   const { language, setLanguage } = useLocaleStore();
   const { baby, openProfileModal } = useBabyStore();
+  const { alarmSound, setAlarmSound, smartNightMode, setSmartNightMode } = usePreferencesStore();
 
+  const [isSoundSelectorOpen, setIsSoundSelectorOpen] = React.useState(false);
   const isDark = themeMode === 'dark';
+
+  const handleTestSound = (soundId: AlarmSoundId) => {
+    notificationService.previewAlarmSound(soundId, 'alarm');
+  };
+
+  const selectedSoundObj = ALARM_SOUNDS.find((s) => s.id === alarmSound) || ALARM_SOUNDS[0];
 
   return (
     <ScrollView
@@ -58,6 +71,95 @@ export function SettingsScreen() {
         </View>
         <ChevronRight size={20} color={colors.textMuted} />
       </TouchableOpacity>
+
+      {/* Alarms & Reminders Section */}
+      <Text style={[styles.sectionTitle, { color: colors.textSecondary, marginTop: 24 }]}>
+        {t('settings.alarmsAndReminders')}
+      </Text>
+      <View style={[styles.cardColumn, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+        {/* Alarm Sound Picker */}
+        <TouchableOpacity
+          style={[styles.langRow, { borderBottomColor: colors.cardBorder }]}
+          onPress={() => setIsSoundSelectorOpen(!isSoundSelectorOpen)}
+        >
+          <View style={styles.rowLeft}>
+            <View style={[styles.iconBg, { backgroundColor: colors.warning + '20' }]}>
+              <Volume2 size={20} color={colors.warning} />
+            </View>
+            <View>
+              <Text style={[styles.cardTitle, { color: colors.text }]}>{t('settings.alarmSound')}</Text>
+              <Text style={[styles.cardSubtitle, { color: colors.textMuted }]}>
+                {t(selectedSoundObj.labelKey)}
+              </Text>
+            </View>
+          </View>
+          <ChevronRight size={20} color={colors.textMuted} />
+        </TouchableOpacity>
+
+        {/* Expandable Sound Selector Options */}
+        {isSoundSelectorOpen && (
+          <View style={{ backgroundColor: colors.surfaceSubtle }}>
+            {ALARM_SOUNDS.map((soundItem) => (
+              <View
+                key={soundItem.id}
+                style={[
+                  styles.soundItemRow,
+                  { borderBottomColor: colors.cardBorder },
+                ]}
+              >
+                <TouchableOpacity
+                  style={styles.soundSelectBtn}
+                  onPress={() => setAlarmSound(soundItem.id)}
+                >
+                  <Text
+                    style={[
+                      styles.soundOptionText,
+                      {
+                        color: alarmSound === soundItem.id ? colors.primaryLight : colors.text,
+                        fontWeight: alarmSound === soundItem.id ? '700' : '500',
+                      },
+                    ]}
+                  >
+                    {t(soundItem.labelKey)}
+                  </Text>
+                  {alarmSound === soundItem.id && (
+                    <View style={[styles.activeDot, { backgroundColor: colors.primary }]} />
+                  )}
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.testSoundBtn, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}
+                  onPress={() => handleTestSound(soundItem.id)}
+                >
+                  <Text style={[styles.testSoundText, { color: colors.primaryLight }]}>
+                    {t('settings.testSound')}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {/* Smart Night Mode Switch */}
+        <View style={[styles.langRow, { borderBottomWidth: 0 }]}>
+          <View style={[styles.rowLeft, { flex: 1, paddingRight: 12 }]}>
+            <View style={[styles.iconBg, { backgroundColor: colors.primary + '20' }]}>
+              <Sparkles size={20} color={colors.primary} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.cardTitle, { color: colors.text }]}>{t('settings.smartNightMode')}</Text>
+              <Text style={[styles.cardSubtitle, { color: colors.textMuted }]} numberOfLines={2}>
+                {t('settings.smartNightModeDesc')}
+              </Text>
+            </View>
+          </View>
+          <Switch
+            value={smartNightMode}
+            onValueChange={(val) => setSmartNightMode(val)}
+            trackColor={{ false: colors.surfaceSubtle, true: colors.primary }}
+            thumbColor="#FFF"
+          />
+        </View>
+      </View>
 
       {/* Appearance / Theme */}
       <Text style={[styles.sectionTitle, { color: colors.textSecondary, marginTop: 24 }]}>
@@ -202,5 +304,33 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
+  },
+  soundItemRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+  },
+  soundSelectBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flex: 1,
+    paddingVertical: 4,
+  },
+  soundOptionText: {
+    fontSize: 15,
+  },
+  testSoundBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  testSoundText: {
+    fontSize: 13,
+    fontWeight: '600',
   },
 });

@@ -40,6 +40,7 @@ jest.mock('../db/repositories/reminderRepository', () => ({
     deactivateReminder: jest.fn().mockResolvedValue(undefined),
     deactivateRemindersByType: jest.fn().mockResolvedValue(undefined),
     createReminder: jest.fn().mockResolvedValue({ id: 'rem-1' }),
+    updateReminder: jest.fn().mockResolvedValue(undefined),
   },
 }));
 
@@ -247,4 +248,118 @@ describe('Feeding Stale Reminders and Notifications Cleanup', () => {
     expect(reminderRepository.deactivateReminder).toHaveBeenCalledWith('rem-expired-1');
   });
 });
+
+describe('Feeding Dual Alert Modes and Direct Modification', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    useFeedingStore.setState({
+      activeReminder: null,
+      isEditReminderModalOpen: false,
+    });
+  });
+
+  it('schedules feeding reminder with notification mode', async () => {
+    const { notificationService } = require('../services/notificationService');
+    const { reminderRepository } = require('../db/repositories/reminderRepository');
+
+    (reminderRepository.createReminder as jest.Mock).mockResolvedValueOnce({
+      id: 'rem-new-1',
+      babyId: 'baby-1',
+      type: 'feeding',
+      targetTime: Date.now() + 120 * 60 * 1000,
+      notificationId: 'notif-1',
+      alertMode: 'notification',
+      isActive: true,
+    });
+
+    await useFeedingStore.getState().scheduleNextFeedingReminder('baby-1', 'Liam', 120, {
+      alertMode: 'notification',
+    });
+
+    expect(notificationService.scheduleFeedingAlarm).toHaveBeenCalledWith(
+      'Liam',
+      120,
+      expect.any(Number),
+      expect.objectContaining({ alertMode: 'notification' })
+    );
+  });
+
+  it('postpones active reminder by specified minutes', async () => {
+    const { notificationService } = require('../services/notificationService');
+    const { reminderRepository } = require('../db/repositories/reminderRepository');
+
+    const initialTarget = Date.now() + 30 * 60 * 1000;
+    const existingReminder = {
+      id: 'rem-active-1',
+      babyId: 'baby-1',
+      type: 'feeding' as const,
+      targetTime: initialTarget,
+      notificationId: 'notif-prev',
+      alertMode: 'alarm' as const,
+      soundName: 'default',
+      isActive: true,
+      createdAt: Date.now(),
+    };
+
+    useFeedingStore.setState({ activeReminder: existingReminder });
+    (reminderRepository.getNextActiveFeedingReminder as jest.Mock).mockResolvedValueOnce({
+      ...existingReminder,
+      targetTime: initialTarget + 15 * 60 * 1000,
+    });
+
+    await useFeedingStore.getState().postponeActiveReminder('baby-1', 'Liam', 15);
+
+    expect(notificationService.cancelNotification).toHaveBeenCalledWith('notif-prev');
+    expect(notificationService.scheduleFeedingAlarm).toHaveBeenCalledWith(
+      'Liam',
+      initialTarget + 15 * 60 * 1000,
+      0,
+      expect.objectContaining({ isExactTimestamp: true, alertMode: 'alarm' })
+    );
+    expect(reminderRepository.updateReminder).toHaveBeenCalledWith(
+      'rem-active-1',
+      expect.objectContaining({ targetTime: initialTarget + 15 * 60 * 1000 })
+    );
+  });
+
+  it('updates active reminder target time and alert mode via updateActiveReminder', async () => {
+    const { notificationService } = require('../services/notificationService');
+    const { reminderRepository } = require('../db/repositories/reminderRepository');
+
+    const newTargetTime = Date.now() + 180 * 60 * 1000;
+    const existingReminder = {
+      id: 'rem-active-2',
+      babyId: 'baby-1',
+      type: 'feeding' as const,
+      targetTime: Date.now() + 60 * 60 * 1000,
+      notificationId: 'notif-prev-2',
+      alertMode: 'notification' as const,
+      soundName: 'default',
+      isActive: true,
+      createdAt: Date.now(),
+    };
+
+    useFeedingStore.setState({ activeReminder: existingReminder });
+    (reminderRepository.getNextActiveFeedingReminder as jest.Mock).mockResolvedValueOnce({
+      ...existingReminder,
+      targetTime: newTargetTime,
+      alertMode: 'alarm',
+    });
+
+    await useFeedingStore.getState().updateActiveReminder('baby-1', 'Liam', newTargetTime, 'alarm');
+
+    expect(notificationService.cancelNotification).toHaveBeenCalledWith('notif-prev-2');
+    expect(notificationService.scheduleFeedingAlarm).toHaveBeenCalledWith(
+      'Liam',
+      newTargetTime,
+      0,
+      expect.objectContaining({ alertMode: 'alarm', isExactTimestamp: true })
+    );
+    expect(reminderRepository.updateReminder).toHaveBeenCalledWith(
+      'rem-active-2',
+      expect.objectContaining({ targetTime: newTargetTime, alertMode: 'alarm' })
+    );
+  });
+});
+
 

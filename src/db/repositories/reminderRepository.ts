@@ -1,4 +1,4 @@
-import { desc, eq } from 'drizzle-orm';
+import { and, desc, eq } from 'drizzle-orm';
 import { getDb } from '../client';
 import { reminders, type Reminder, type NewReminder } from '../schema';
 import { generateId } from '../../utils/id';
@@ -38,12 +38,20 @@ export const reminderRepository = {
     return result[0];
   },
 
+  async updateReminder(id: string, data: Partial<Omit<Reminder, 'id' | 'createdAt'>>): Promise<void> {
+    const db = getDb();
+    await db
+      .update(reminders)
+      .set(data)
+      .where(eq(reminders.id, id));
+  },
+
   async deactivateRemindersByType(babyId: string, type: 'feeding' | 'appointment'): Promise<void> {
     const db = getDb();
     await db
       .update(reminders)
       .set({ isActive: false })
-      .where(eq(reminders.babyId, babyId));
+      .where(and(eq(reminders.babyId, babyId), eq(reminders.type, type)));
   },
 
   async getExpiredActiveReminders(babyId: string): Promise<Reminder[]> {

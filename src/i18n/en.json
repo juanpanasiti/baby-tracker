@@ -107,12 +107,25 @@
   },
   "alarms": {
     "feedingAlarmTitle": "🍼 Feeding Time!",
+    "feedingNotificationTitle": "🍼 Time for Feeding",
     "feedingAlarmBody": "It's time for {{babyName}}'s next feeding.",
     "appointmentAlarmTitle": "🏥 Upcoming Appointment: {{title}}",
     "appointmentAlarmBody": "Appointment with {{doctor}} scheduled for {{time}}.",
     "activeAlarm": "Next Feeding Alarm: {{time}}",
-    "cancelAlarm": "Cancel Alarm",
-    "alarmScheduled": "Alarm scheduled for {{time}}"
+    "activeNotification": "Next Feeding: {{time}}",
+    "cancelAlarm": "Cancel Alert",
+    "alarmScheduled": "Alarm scheduled for {{time}}",
+    "notificationScheduled": "Notification scheduled for {{time}}",
+    "alertMode": "Alert Mode",
+    "notificationMode": "Notification",
+    "notificationModeDesc": "Discrete sound (Daytime)",
+    "alarmMode": "Loud Alarm",
+    "alarmModeDesc": "Insistent sound (Nighttime)",
+    "editReminder": "Edit Feeding Reminder",
+    "postpone15": "+15m",
+    "postpone30": "+30m",
+    "selectExactTime": "Set Exact Time",
+    "reminderUpdated": "Reminder updated successfully"
   },
   "settings": {
     "title": "Settings",
@@ -123,7 +136,18 @@
     "language": "Language",
     "english": "English",
     "spanish": "Spanish",
+    "alarmsAndReminders": "Alarms & Reminders",
+    "alarmSound": "Alarm Sound",
+    "alarmSoundDesc": "Tone used for loud nighttime alarms",
+    "soundDefault": "System Default",
+    "soundDigital": "Digital Clock",
+    "soundChime": "Gentle Chime",
+    "soundBells": "Soft Bells",
+    "soundGentle": "Lullaby Harp",
+    "testSound": "Test",
+    "smartNightMode": "Smart Night Suggestion",
+    "smartNightModeDesc": "Automatically preselect Loud Alarm between 22:00 and 07:00",
     "about": "About Baby Tracker",
-    "version": "Version 1.0.0 (Offline First)"
+    "version": "Version 1.1.1 (Offline First)"
   }
 }

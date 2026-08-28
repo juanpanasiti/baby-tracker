@@ -22,9 +22,11 @@ import {
   Heart,
   Calendar,
   Bell,
+  Sparkles,
   X,
   Clock,
   ChevronRight,
+  Edit3,
 } from 'lucide-react-native';
 
 interface DashboardScreenProps {
@@ -42,6 +44,8 @@ export function DashboardScreen({ onNavigateToTimeline, onNavigateToAppointments
     feedings,
     activeReminder,
     cancelActiveReminder,
+    postponeActiveReminder,
+    openEditReminderModal,
     openFeedingModal,
     openEditFeedingModal,
     isTimerRunning,
@@ -77,6 +81,8 @@ export function DashboardScreen({ onNavigateToTimeline, onNavigateToAppointments
     return `${m}:${s.toString().padStart(2, '0')}`;
   };
 
+  const isAlarmMode = activeReminder?.alertMode === 'alarm';
+
   return (
     <ScrollView
       style={[styles.container, { backgroundColor: colors.background }]}
@@ -89,27 +95,82 @@ export function DashboardScreen({ onNavigateToTimeline, onNavigateToAppointments
 
       {/* Active Feeding Reminder Banner */}
       {activeReminder && activeReminder.isActive && activeReminder.targetTime > Date.now() && (
-        <View style={[styles.alarmCard, { backgroundColor: colors.primary + '15', borderColor: colors.primary }]}>
-          <View style={styles.alarmLeft}>
-            <View style={[styles.alarmIconBg, { backgroundColor: colors.primary }]}>
-              <Bell size={18} color="#FFF" />
-            </View>
-            <View style={styles.alarmTextContainer}>
-              <Text style={[styles.alarmTitle, { color: colors.primaryLight }]}>
-                {t('alarms.activeAlarm', { time: formatTimeOnly(activeReminder.targetTime) })}
-              </Text>
-              <Text style={[styles.alarmSubtitle, { color: colors.textSecondary }]}>
-                {t('feeding.lastFeeding')}: {latestFeeding ? formatRelativeTime(latestFeeding.timestamp, isSpanish) : '—'}
-              </Text>
-            </View>
-          </View>
+        <View
+          style={[
+            styles.alarmCard,
+            {
+              backgroundColor: isAlarmMode ? colors.warning + '12' : colors.primary + '12',
+              borderColor: isAlarmMode ? colors.warning + '80' : colors.primary + '80',
+            },
+          ]}
+        >
           <TouchableOpacity
-            style={styles.cancelAlarmBtn}
-            onPress={() => baby && cancelActiveReminder(baby.id)}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            style={styles.alarmTopRow}
+            onPress={openEditReminderModal}
+            activeOpacity={0.7}
           >
-            <X size={18} color={colors.textMuted} />
+            <View style={styles.alarmLeft}>
+              <View
+                style={[
+                  styles.alarmIconBg,
+                  { backgroundColor: isAlarmMode ? colors.warning : colors.primary },
+                ]}
+              >
+                {isAlarmMode ? <Sparkles size={18} color="#FFF" /> : <Bell size={18} color="#FFF" />}
+              </View>
+              <View style={styles.alarmTextContainer}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Text
+                    style={[
+                      styles.alarmTitle,
+                      { color: isAlarmMode ? colors.warning : colors.primaryLight },
+                    ]}
+                  >
+                    {isAlarmMode
+                      ? t('alarms.activeAlarm', { time: formatTimeOnly(activeReminder.targetTime) })
+                      : t('alarms.activeNotification', { time: formatTimeOnly(activeReminder.targetTime) })}
+                  </Text>
+                </View>
+                <Text style={[styles.alarmSubtitle, { color: colors.textSecondary }]}>
+                  {t('feeding.lastFeeding')}: {latestFeeding ? formatRelativeTime(latestFeeding.timestamp, isSpanish) : '—'}
+                </Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              style={styles.cancelAlarmBtn}
+              onPress={() => baby && cancelActiveReminder(baby.id)}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <X size={18} color={colors.textMuted} />
+            </TouchableOpacity>
           </TouchableOpacity>
+
+          {/* Quick Postpone & Edit Actions Footer */}
+          <View style={[styles.alarmActionsRow, { borderTopColor: colors.cardBorder }]}>
+            <TouchableOpacity
+              style={[styles.quickPostponeBtn, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}
+              onPress={() => baby && postponeActiveReminder(baby.id, baby.name, 15)}
+            >
+              <Clock size={13} color={colors.primaryLight} />
+              <Text style={[styles.quickPostponeText, { color: colors.text }]}>{t('alarms.postpone15')}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.quickPostponeBtn, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}
+              onPress={() => baby && postponeActiveReminder(baby.id, baby.name, 30)}
+            >
+              <Clock size={13} color={colors.primaryLight} />
+              <Text style={[styles.quickPostponeText, { color: colors.text }]}>{t('alarms.postpone30')}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.quickPostponeBtn, { backgroundColor: colors.card, borderColor: colors.cardBorder, flex: 1.2 }]}
+              onPress={openEditReminderModal}
+            >
+              <Edit3 size={13} color={colors.primaryLight} />
+              <Text style={[styles.quickPostponeText, { color: colors.primaryLight }]}>{t('common.edit')}</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       )}
 
@@ -226,13 +287,16 @@ const styles = StyleSheet.create({
     paddingBottom: 32,
   },
   alarmCard: {
+    borderRadius: 16,
+    borderWidth: 1.5,
+    marginBottom: 14,
+    overflow: 'hidden',
+  },
+  alarmTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 14,
-    borderRadius: 16,
-    borderWidth: 1.5,
-    marginBottom: 14,
   },
   alarmLeft: {
     flexDirection: 'row',
@@ -260,6 +324,28 @@ const styles = StyleSheet.create({
   },
   cancelAlarmBtn: {
     padding: 6,
+  },
+  alarmActionsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderTopWidth: 1,
+  },
+  quickPostponeBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    gap: 4,
+  },
+  quickPostponeText: {
+    fontSize: 12,
+    fontWeight: '600',
   },
   appointmentBanner: {
     flexDirection: 'row',

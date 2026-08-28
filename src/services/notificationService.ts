@@ -13,27 +13,55 @@ Notifications.setNotificationHandler({
 });
 
 export const notificationService = {
-  async setupChannels(): Promise<void> {
+  async setupChannels(alarmSound = 'default'): Promise<void> {
     if (Platform.OS === 'android') {
-      await Notifications.setNotificationChannelAsync('feeding-alarms', {
-        name: 'Feeding Alarms',
-        importance: Notifications.AndroidImportance.MAX,
+      // 1. Standard discrete Daytime Feeding Notification
+      await Notifications.setNotificationChannelAsync('feeding-notifications', {
+        name: 'Feeding Notifications (Daytime)',
+        importance: Notifications.AndroidImportance.HIGH,
         sound: 'default',
         vibrationPattern: [0, 250, 250, 250],
         enableLights: true,
         enableVibrate: true,
         lightColor: '#6366F1',
+        audioAttributes: {
+          usage: Notifications.AndroidAudioUsage.NOTIFICATION,
+          contentType: Notifications.AndroidAudioContentType.SONIFICATION,
+        },
         lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
       });
 
+      // 2. High-priority Loud Alarm for Nighttime
+      const soundFile = alarmSound && alarmSound !== 'default' ? alarmSound : 'default';
+      await Notifications.setNotificationChannelAsync('feeding-alarms', {
+        name: 'Feeding Alarms (Night/Loud)',
+        importance: Notifications.AndroidImportance.MAX,
+        sound: soundFile,
+        vibrationPattern: [0, 500, 250, 500, 250, 500, 250, 500],
+        enableLights: true,
+        enableVibrate: true,
+        lightColor: '#EF4444',
+        audioAttributes: {
+          usage: Notifications.AndroidAudioUsage.ALARM,
+          contentType: Notifications.AndroidAudioContentType.SONIFICATION,
+        },
+        lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+        bypassDnd: true,
+      });
+
+      // 3. Appointment Reminders
       await Notifications.setNotificationChannelAsync('appointment-reminders', {
         name: 'Appointment Reminders',
-        importance: Notifications.AndroidImportance.MAX,
+        importance: Notifications.AndroidImportance.HIGH,
         sound: 'default',
         vibrationPattern: [0, 250, 250, 250],
         enableLights: true,
         enableVibrate: true,
         lightColor: '#A78BFA',
+        audioAttributes: {
+          usage: Notifications.AndroidAudioUsage.NOTIFICATION,
+          contentType: Notifications.AndroidAudioContentType.SONIFICATION,
+        },
         lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
       });
     }
@@ -51,35 +79,74 @@ export const notificationService = {
 
   async scheduleFeedingAlarm(
     babyName: string,
-    intervalMinutes: number,
-    baseTimestamp = Date.now()
+    intervalMinutesOrTimestamp: number,
+    baseTimestamp = Date.now(),
+    options?: {
+      alertMode?: 'notification' | 'alarm';
+      soundName?: string;
+      isExactTimestamp?: boolean;
+    }
   ): Promise<{ notificationId: string; targetTime: number }> {
-    await this.setupChannels();
+    const alertMode = options?.alertMode || 'alarm';
+    const soundName = options?.soundName || 'default';
+
+    await this.setupChannels(soundName);
     await this.requestPermissions();
 
-    const targetTime = baseTimestamp + intervalMinutes * 60 * 1000;
-    const triggerDate = new Date(targetTime);
+    const targetTime = options?.isExactTimestamp
+      ? intervalMinutesOrTimestamp
+      : baseTimestamp + intervalMinutesOrTimestamp * 60 * 1000;
 
-    const title = i18n.t('alarms.feedingAlarmTitle');
+    const triggerDate = new Date(targetTime);
+    const channelId = alertMode === 'alarm' ? 'feeding-alarms' : 'feeding-notifications';
+
+    const isAlarm = alertMode === 'alarm';
+    const title = isAlarm
+      ? i18n.t('alarms.feedingAlarmTitle')
+      : i18n.t('alarms.feedingNotificationTitle', { defaultValue: '🍼 Time for Feeding' });
     const body = i18n.t('alarms.feedingAlarmBody', { babyName: babyName || 'Baby' });
 
     const notificationId = await Notifications.scheduleNotificationAsync({
       content: {
         title,
         body,
-        sound: true,
-        priority: Notifications.AndroidNotificationPriority.MAX,
-        vibrate: [0, 250, 250, 250],
-        data: { type: 'feeding', targetTime },
+        sound: soundName !== 'default' ? soundName : true,
+        priority: isAlarm
+          ? Notifications.AndroidNotificationPriority.MAX
+          : Notifications.AndroidNotificationPriority.HIGH,
+        vibrate: isAlarm ? [0, 500, 250, 500, 250, 500] : [0, 250, 250, 250],
+        data: { type: 'feeding', targetTime, alertMode, soundName },
       },
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.DATE,
         date: triggerDate,
-        channelId: 'feeding-alarms',
+        channelId,
       },
     });
 
     return { notificationId, targetTime };
+  },
+
+  async previewAlarmSound(soundName = 'default', alertMode: 'notification' | 'alarm' = 'alarm'): Promise<void> {
+    await this.setupChannels(soundName);
+    await this.requestPermissions();
+
+    const isAlarm = alertMode === 'alarm';
+    const channelId = isAlarm ? 'feeding-alarms' : 'feeding-notifications';
+
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: isAlarm ? '⏰ Sound Preview / Alarma' : '🔔 Notification Preview / Notificación',
+        body: `Testing ${soundName} sound`,
+        sound: soundName !== 'default' ? soundName : true,
+        priority: isAlarm
+          ? Notifications.AndroidNotificationPriority.MAX
+          : Notifications.AndroidNotificationPriority.HIGH,
+        vibrate: isAlarm ? [0, 500, 250, 500] : [0, 250],
+        data: { type: 'preview', soundName },
+      },
+      trigger: null, // trigger immediately
+    });
   },
 
   async scheduleAppointmentReminder(

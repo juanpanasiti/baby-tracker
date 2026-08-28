@@ -107,12 +107,25 @@
   },
   "alarms": {
     "feedingAlarmTitle": "🍼 ¡Hora de Comer!",
+    "feedingNotificationTitle": "🍼 Hora de la Toma",
     "feedingAlarmBody": "Es hora de la próxima toma de {{babyName}}.",
     "appointmentAlarmTitle": "🏥 Turno Médico Próximo: {{title}}",
     "appointmentAlarmBody": "Turno con {{doctor}} programado para las {{time}}.",
     "activeAlarm": "Próxima Alarma de Comida: {{time}}",
-    "cancelAlarm": "Cancelar Alarma",
-    "alarmScheduled": "Alarma programada para las {{time}}"
+    "activeNotification": "Próxima Comida: {{time}}",
+    "cancelAlarm": "Cancelar Alerta",
+    "alarmScheduled": "Alarma programada para las {{time}}",
+    "notificationScheduled": "Notificación programada para las {{time}}",
+    "alertMode": "Tipo de Alerta",
+    "notificationMode": "Notificación",
+    "notificationModeDesc": "Sonido discreto (Para el día)",
+    "alarmMode": "Alarma Sonora",
+    "alarmModeDesc": "Sonido insistente (Para la noche)",
+    "editReminder": "Modificar Recordatorio",
+    "postpone15": "+15m",
+    "postpone30": "+30m",
+    "selectExactTime": "Elegir Hora Exacta",
+    "reminderUpdated": "Recordatorio actualizado con éxito"
   },
   "settings": {
     "title": "Ajustes",
@@ -123,7 +136,18 @@
     "language": "Idioma",
     "english": "Inglés",
     "spanish": "Español",
+    "alarmsAndReminders": "Alarmas y Recordatorios",
+    "alarmSound": "Tono de Alarma",
+    "alarmSoundDesc": "Sonido utilizado para la alarma nocturna",
+    "soundDefault": "Predeterminado del Sistema",
+    "soundDigital": "Despertador Digital",
+    "soundChime": "Campanadas Suaves",
+    "soundBells": "Campanilla Dulce",
+    "soundGentle": "Arpa Relajante",
+    "testSound": "Probar",
+    "smartNightMode": "Sugerencia Nocturna Inteligente",
+    "smartNightModeDesc": "Preselecciona Alarma Sonora de 22:00 a 07:00 hs automáticamente",
     "about": "Acerca de Baby Tracker",
-    "version": "Versión 1.0.0 (Offline First)"
+    "version": "Versión 1.1.1 (Offline First)"
   }
 }

@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { feedingRepository } from '../db/repositories/feedingRepository';
 import { reminderRepository } from '../db/repositories/reminderRepository';
 import { notificationService } from '../services/notificationService';
+import { usePreferencesStore } from './usePreferencesStore';
 import { type Feeding, type NewFeeding, type Reminder } from '../db/schema';
 
 interface FeedingState {
@@ -17,16 +18,29 @@ interface FeedingState {
   timerSeconds: number;
   isTimerRunning: boolean;
 
-  // Reminder Prompt
+  // Reminder Prompt & Edit Modal
   isReminderPromptOpen: boolean;
   savedFeedingTimestamp: number | null;
+  isEditReminderModalOpen: boolean;
 
   // Actions
   loadFeedings: (babyId: string) => Promise<void>;
   createFeeding: (babyId: string, data: Omit<NewFeeding, 'id' | 'babyId'>) => Promise<Feeding>;
   updateFeeding: (babyId: string, id: string, data: Partial<Omit<Feeding, 'id' | 'babyId'>>) => Promise<void>;
   deleteFeeding: (babyId: string, id: string) => Promise<void>;
-  scheduleNextFeedingReminder: (babyId: string, babyName: string, intervalMinutes: number) => Promise<void>;
+  scheduleNextFeedingReminder: (
+    babyId: string,
+    babyName: string,
+    intervalMinutesOrTimestamp: number,
+    options?: { alertMode?: 'notification' | 'alarm'; isExactTimestamp?: boolean }
+  ) => Promise<void>;
+  postponeActiveReminder: (babyId: string, babyName: string, minutesToAdd: number) => Promise<void>;
+  updateActiveReminder: (
+    babyId: string,
+    babyName: string,
+    newTargetTime: number,
+    alertMode: 'notification' | 'alarm'
+  ) => Promise<void>;
   cancelActiveReminder: (babyId: string) => Promise<void>;
   cleanupStaleReminders: (babyId: string) => Promise<void>;
 
@@ -34,6 +48,8 @@ interface FeedingState {
   openEditFeedingModal: (feeding: Feeding) => void;
   closeFeedingModal: () => void;
   closeReminderPrompt: () => void;
+  openEditReminderModal: () => void;
+  closeEditReminderModal: () => void;
 
   // Timer controls
   startTimer: (side: 'left' | 'right' | 'both') => void;
@@ -58,6 +74,7 @@ export const useFeedingStore = create<FeedingState>((set, get) => ({
 
   isReminderPromptOpen: false,
   savedFeedingTimestamp: null,
+  isEditReminderModalOpen: false,
 
   cleanupStaleReminders: async (babyId: string) => {
     try {
@@ -123,12 +140,25 @@ export const useFeedingStore = create<FeedingState>((set, get) => ({
     await get().loadFeedings(babyId);
   },
 
-  scheduleNextFeedingReminder: async (babyId: string, babyName: string, intervalMinutes: number) => {
-    const baseTime = get().savedFeedingTimestamp ?? Date.now();
+  scheduleNextFeedingReminder: async (
+    babyId: string,
+    babyName: string,
+    intervalMinutesOrTimestamp: number,
+    options?: { alertMode?: 'notification' | 'alarm'; isExactTimestamp?: boolean }
+  ) => {
+    const alertMode = options?.alertMode || 'alarm';
+    const alarmSound = usePreferencesStore.getState().alarmSound;
+    const baseTime = options?.isExactTimestamp ? 0 : get().savedFeedingTimestamp ?? Date.now();
+
     const { notificationId, targetTime } = await notificationService.scheduleFeedingAlarm(
       babyName,
-      intervalMinutes,
-      baseTime
+      intervalMinutesOrTimestamp,
+      baseTime,
+      {
+        alertMode,
+        soundName: alarmSound,
+        isExactTimestamp: options?.isExactTimestamp,
+      }
     );
 
     // Deactivate previous feeding reminders
@@ -140,10 +170,93 @@ export const useFeedingStore = create<FeedingState>((set, get) => ({
       type: 'feeding',
       notificationId,
       targetTime,
+      alertMode,
+      soundName: alarmSound,
       isActive: true,
     });
 
     set({ activeReminder: reminder, isReminderPromptOpen: false });
+  },
+
+  postponeActiveReminder: async (babyId: string, babyName: string, minutesToAdd: number) => {
+    const current = get().activeReminder;
+    if (!current || !current.isActive) return;
+
+    if (current.notificationId) {
+      await notificationService.cancelNotification(current.notificationId);
+    }
+
+    const newTargetTime = Math.max(Date.now() + 60000, current.targetTime + minutesToAdd * 60 * 1000);
+    const alertMode = (current.alertMode as 'notification' | 'alarm') || 'alarm';
+    const soundName = current.soundName || usePreferencesStore.getState().alarmSound;
+
+    const { notificationId } = await notificationService.scheduleFeedingAlarm(
+      babyName,
+      newTargetTime,
+      0,
+      {
+        alertMode,
+        soundName,
+        isExactTimestamp: true,
+      }
+    );
+
+    await reminderRepository.updateReminder(current.id, {
+      targetTime: newTargetTime,
+      notificationId,
+      alertMode,
+      soundName,
+    });
+
+    const updated = await reminderRepository.getNextActiveFeedingReminder(babyId);
+    set({ activeReminder: updated });
+  },
+
+  updateActiveReminder: async (
+    babyId: string,
+    babyName: string,
+    newTargetTime: number,
+    alertMode: 'notification' | 'alarm'
+  ) => {
+    const current = get().activeReminder;
+    if (current?.notificationId) {
+      await notificationService.cancelNotification(current.notificationId);
+    }
+
+    const soundName = usePreferencesStore.getState().alarmSound;
+    const { notificationId } = await notificationService.scheduleFeedingAlarm(
+      babyName,
+      newTargetTime,
+      0,
+      {
+        alertMode,
+        soundName,
+        isExactTimestamp: true,
+      }
+    );
+
+    if (current) {
+      await reminderRepository.updateReminder(current.id, {
+        targetTime: newTargetTime,
+        notificationId,
+        alertMode,
+        soundName,
+        isActive: true,
+      });
+    } else {
+      await reminderRepository.createReminder({
+        babyId,
+        type: 'feeding',
+        targetTime: newTargetTime,
+        notificationId,
+        alertMode,
+        soundName,
+        isActive: true,
+      });
+    }
+
+    const updated = await reminderRepository.getNextActiveFeedingReminder(babyId);
+    set({ activeReminder: updated });
   },
 
   cancelActiveReminder: async (babyId: string) => {
@@ -159,6 +272,8 @@ export const useFeedingStore = create<FeedingState>((set, get) => ({
   openEditFeedingModal: (feeding: Feeding) => set({ isFeedingModalOpen: true, editingFeeding: feeding }),
   closeFeedingModal: () => set({ isFeedingModalOpen: false, editingFeeding: null }),
   closeReminderPrompt: () => set({ isReminderPromptOpen: false }),
+  openEditReminderModal: () => set({ isEditReminderModalOpen: true }),
+  closeEditReminderModal: () => set({ isEditReminderModalOpen: false }),
 
   startTimer: (side) => {
     set({ timerSide: side, isTimerRunning: true, timerSeconds: 0 });

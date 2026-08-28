@@ -6,11 +6,13 @@ A modern, local-first mobile application built with React Native and Expo (prima
 
 Baby Tracker helps parents and caregivers log and monitor essential baby routines with zero cloud dependency:
 - **Baby Profile**: Store and manage baby information including photo avatar, name, sex, and birth date with automated age calculations.
-- **Feedings**:
+- **Feedings & Reminders**:
   - **Breastfeeding**: Nursing timer with left, right, or both side tracking and manual duration setting.
   - **Bottle Feeding**: Milliliter (ml) volume logging with quick-preset pill selectors.
   - **Custom Date & Time**: Set exact event timestamp with quick offsets (`Now`, `-15m`, `-30m`, `-1h`) and manual date/time inputs.
-  - **Next Feeding Alarms**: Interactive prompt following each log with intervals (2h, 2.5h, 3h, 3.5h, 4h, or custom) to schedule local high-priority notifications.
+  - **Dual Alert Modes (Notification vs Loud Alarm)**: Choose between discrete daytime push notifications and loud, insistent nighttime waking alarms using Android `USAGE_ALARM` audio streams.
+  - **Next Feeding Alarms & Exact Time**: Interactive prompt following each log with intervals (2h, 2.5h, 3h, 3.5h, 4h) or custom exact time picker.
+  - **Interactive Dashboard Banner & Quick Postpone**: Postpone active reminders with 1-tap buttons (`+15m`, `+30m`) or tap to open the full **Edit Reminder Modal** to adjust target time, toggle alert mode, or cancel.
 - **Diaper Changes**: Track diaper events (pee, poop, or both), rash indicators, custom timestamps, and care notes.
 - **Timeline & History Editing**:
   - Reverse chronological timeline with filter tabs for all events, feedings, or diapers.
@@ -19,9 +21,11 @@ Baby Tracker helps parents and caregivers log and monitor essential baby routine
   - Schedule pediatrician checkups and specialist visits.
   - Sync events directly to the native device calendar (`expo-calendar`).
   - Configure automated advance notifications (24 hours and 2 hours prior).
-- **Theming & Localization**:
+- **Theming, Localization & Preferences**:
   - **Themes**: Dark Mode (default) and Light Mode, persisted locally.
   - **Localization**: English (default) and Spanish, persisted locally.
+  - **Alarm Sound Customization**: Configurable alarm ringtone (System default, Digital clock, Gentle chimes, Soft bells, Lullaby harp) with test preview.
+  - **Smart Night Mode**: Optional automatic suggestion that preselects Loud Alarm mode during nighttime hours (22:00 to 07:00).
 
 ## Tech Stack
 
@@ -50,6 +54,7 @@ Baby Tracker helps parents and caregivers log and monitor essential baby routine
 │   │   ├── DatePickerInput.tsx    # Reusable date-only picker with constraints
 │   │   ├── DateTimePickerInput.tsx # Reusable datetime picker with native dialogs & presets
 │   │   ├── DiaperModal.tsx        # Diaper change logger & editor
+│   │   ├── EditReminderModal.tsx  # Interactive reminder editor & alert mode selector
 │   │   ├── FeedingModal.tsx       # Breast & bottle feeding logger & editor
 │   │   ├── FeedingReminderPrompt.tsx # Next feeding alarm scheduler
 │   │   ├── ProfileHeader.tsx      # Baby info & age calculation banner

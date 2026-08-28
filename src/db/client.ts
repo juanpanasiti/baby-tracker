@@ -85,9 +85,25 @@ export async function initDatabase(): Promise<void> {
       type TEXT NOT NULL,
       target_time INTEGER NOT NULL,
       notification_id TEXT NOT NULL,
+      alert_mode TEXT DEFAULT 'alarm',
+      sound_name TEXT,
       is_active INTEGER NOT NULL DEFAULT 1,
       created_at INTEGER NOT NULL,
       FOREIGN KEY (baby_id) REFERENCES babies (id) ON DELETE CASCADE
     );
   `);
+
+  // Safe migrations for added columns in reminders
+  try {
+    const tableInfo = await expoDb.getAllAsync<{ name: string }>(`PRAGMA table_info(reminders);`);
+    const columnNames = tableInfo.map((c) => c.name);
+    if (!columnNames.includes('alert_mode')) {
+      await expoDb.execAsync(`ALTER TABLE reminders ADD COLUMN alert_mode TEXT DEFAULT 'alarm';`);
+    }
+    if (!columnNames.includes('sound_name')) {
+      await expoDb.execAsync(`ALTER TABLE reminders ADD COLUMN sound_name TEXT;`);
+    }
+  } catch {
+    // Migration ignored if fails
+  }
 }
