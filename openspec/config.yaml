@@ -39,6 +39,7 @@ rules:
     - Do not generate artifacts with assumed information; ask for clarification on any unstated requirements.
     - Explicitly define User Impact, Goals, and Non-Goals.
     - Document all known constraints and dependencies.
+    - Take in account the version update in the list of tasks.
   specs:
     - All content, requirements, and scenarios must be written in English.
     - Specify clear, testable acceptance criteria for every capability.
@@ -71,3 +72,4 @@ operations:
       - Verify that all proposal goals and acceptance criteria were met before finalizing.
       - Ensure README.md is up to date with the completed changes.
       - Summarize changes and outcomes in English in the archive output.
+      - After the archive is done, ask if I want to commit the changes.

@@ -36,6 +36,8 @@ jest.mock('../db/repositories/appointmentRepository', () => ({
 jest.mock('../db/repositories/reminderRepository', () => ({
   reminderRepository: {
     getNextActiveFeedingReminder: jest.fn().mockResolvedValue(null),
+    getExpiredActiveReminders: jest.fn().mockResolvedValue([]),
+    deactivateReminder: jest.fn().mockResolvedValue(undefined),
     deactivateRemindersByType: jest.fn().mockResolvedValue(undefined),
     createReminder: jest.fn().mockResolvedValue({ id: 'rem-1' }),
   },
@@ -221,3 +223,28 @@ describe('Appointment Store and Custom Timestamps', () => {
     expect(useAppointmentStore.getState().isAppointmentModalOpen).toBe(false);
   });
 });
+
+describe('Feeding Stale Reminders and Notifications Cleanup', () => {
+  it('cleans up expired reminders and cancels scheduled notification on load', async () => {
+    const { reminderRepository } = require('../db/repositories/reminderRepository');
+    const { notificationService } = require('../services/notificationService');
+
+    const expiredMockReminder = {
+      id: 'rem-expired-1',
+      babyId: 'baby-1',
+      type: 'feeding',
+      notificationId: 'notif-expired-123',
+      targetTime: Date.now() - 3600000,
+      isActive: true,
+      createdAt: Date.now() - 7200000,
+    };
+
+    (reminderRepository.getExpiredActiveReminders as jest.Mock).mockResolvedValueOnce([expiredMockReminder]);
+
+    await useFeedingStore.getState().cleanupStaleReminders('baby-1');
+
+    expect(notificationService.cancelNotification).toHaveBeenCalledWith('notif-expired-123');
+    expect(reminderRepository.deactivateReminder).toHaveBeenCalledWith('rem-expired-1');
+  });
+});
+

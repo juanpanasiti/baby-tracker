@@ -6,6 +6,7 @@ import {
   StyleSheet,
   StatusBar,
   ActivityIndicator,
+  AppState,
 } from 'react-native';
 import './src/i18n'; // Initialize i18n
 import { initDatabase } from './src/db/client';
@@ -35,7 +36,7 @@ export default function App() {
   const { themeMode, colors, loadSavedTheme } = useThemeStore();
   const { loadSavedLanguage } = useLocaleStore();
   const { baby, loadBaby, openProfileModal } = useBabyStore();
-  const { loadFeedings } = useFeedingStore();
+  const { loadFeedings, cleanupStaleReminders } = useFeedingStore();
   const { loadDiaperStore } = useDiaperStore.getState() ? { loadDiaperStore: useDiaperStore.getState().loadDiapers } : { loadDiaperStore: () => Promise.resolve() };
   const { loadAppointments } = useAppointmentStore();
 
@@ -66,6 +67,19 @@ export default function App() {
       loadDiaperStore(baby.id);
       loadAppointments(baby.id);
     }
+  }, [baby]);
+
+  // Sync and clean up stale reminders whenever app returns to active/foreground
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (nextAppState === 'active' && baby) {
+        cleanupStaleReminders(baby.id);
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
   }, [baby]);
 
   if (!isReady) {

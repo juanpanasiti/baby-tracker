@@ -31,7 +31,7 @@ Baby Tracker helps parents and caregivers log and monitor essential baby routine
 - **State Management**: `zustand` + `@react-native-async-storage/async-storage`
 - **Native Integrations**:
   - `@react-native-community/datetimepicker`: Native OS date and time picker dialogs (Android Material & iOS modal)
-  - `expo-notifications`: Local push notifications and Android notification channels
+  - `expo-notifications`: High-priority exact local push notifications (`USE_EXACT_ALARM`, `WAKE_LOCK`) with `MAX` importance Android channels for reliable alerts during Doze mode
   - `expo-calendar`: Native device calendar event creation and sync
   - `expo-image-picker`: Baby profile avatar selection
 - **Localization**: `i18next` + `react-i18next` + `expo-localization`

@@ -17,18 +17,24 @@ export const notificationService = {
     if (Platform.OS === 'android') {
       await Notifications.setNotificationChannelAsync('feeding-alarms', {
         name: 'Feeding Alarms',
-        importance: Notifications.AndroidImportance.HIGH,
+        importance: Notifications.AndroidImportance.MAX,
         sound: 'default',
         vibrationPattern: [0, 250, 250, 250],
+        enableLights: true,
+        enableVibrate: true,
         lightColor: '#6366F1',
+        lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
       });
 
       await Notifications.setNotificationChannelAsync('appointment-reminders', {
         name: 'Appointment Reminders',
-        importance: Notifications.AndroidImportance.HIGH,
+        importance: Notifications.AndroidImportance.MAX,
         sound: 'default',
         vibrationPattern: [0, 250, 250, 250],
+        enableLights: true,
+        enableVibrate: true,
         lightColor: '#A78BFA',
+        lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
       });
     }
   },
@@ -62,7 +68,8 @@ export const notificationService = {
         title,
         body,
         sound: true,
-        priority: Notifications.AndroidNotificationPriority.HIGH,
+        priority: Notifications.AndroidNotificationPriority.MAX,
+        vibrate: [0, 250, 250, 250],
         data: { type: 'feeding', targetTime },
       },
       trigger: {
@@ -103,7 +110,8 @@ export const notificationService = {
         title: notifTitle,
         body: notifBody,
         sound: true,
-        priority: Notifications.AndroidNotificationPriority.HIGH,
+        priority: Notifications.AndroidNotificationPriority.MAX,
+        vibrate: [0, 250, 250, 250],
         data: { type: 'appointment', appointmentTime },
       },
       trigger: {

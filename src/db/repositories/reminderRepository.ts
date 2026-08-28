@@ -46,6 +46,26 @@ export const reminderRepository = {
       .where(eq(reminders.babyId, babyId));
   },
 
+  async getExpiredActiveReminders(babyId: string): Promise<Reminder[]> {
+    const db = getDb();
+    const now = Date.now();
+    const result = await db
+      .select()
+      .from(reminders)
+      .where(eq(reminders.babyId, babyId))
+      .orderBy(desc(reminders.targetTime));
+
+    return result.filter((r) => r.isActive && r.targetTime <= now);
+  },
+
+  async deactivateReminder(id: string): Promise<void> {
+    const db = getDb();
+    await db
+      .update(reminders)
+      .set({ isActive: false })
+      .where(eq(reminders.id, id));
+  },
+
   async deleteReminder(id: string): Promise<void> {
     const db = getDb();
     await db.delete(reminders).where(eq(reminders.id, id));

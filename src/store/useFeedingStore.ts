@@ -28,6 +28,7 @@ interface FeedingState {
   deleteFeeding: (babyId: string, id: string) => Promise<void>;
   scheduleNextFeedingReminder: (babyId: string, babyName: string, intervalMinutes: number) => Promise<void>;
   cancelActiveReminder: (babyId: string) => Promise<void>;
+  cleanupStaleReminders: (babyId: string) => Promise<void>;
 
   openFeedingModal: () => void;
   openEditFeedingModal: (feeding: Feeding) => void;
@@ -58,9 +59,28 @@ export const useFeedingStore = create<FeedingState>((set, get) => ({
   isReminderPromptOpen: false,
   savedFeedingTimestamp: null,
 
+  cleanupStaleReminders: async (babyId: string) => {
+    try {
+      const expiredReminders = await reminderRepository.getExpiredActiveReminders(babyId);
+      for (const expired of expiredReminders) {
+        if (expired.notificationId) {
+          await notificationService.cancelNotification(expired.notificationId);
+        }
+        await reminderRepository.deactivateReminder(expired.id);
+      }
+      const activeReminder = await reminderRepository.getNextActiveFeedingReminder(babyId);
+      set({ activeReminder });
+    } catch {
+      // Ignored
+    }
+  },
+
   loadFeedings: async (babyId: string) => {
     set({ isLoading: true });
     try {
+      // Clean up past-due reminders to cancel lingering OS notifications
+      await get().cleanupStaleReminders(babyId);
+
       const feedings = await feedingRepository.getFeedingsByBabyId(babyId);
       const latestFeeding = await feedingRepository.getLatestFeeding(babyId);
       const activeReminder = await reminderRepository.getNextActiveFeedingReminder(babyId);
