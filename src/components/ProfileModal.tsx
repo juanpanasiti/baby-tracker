@@ -17,6 +17,7 @@ import { useTranslation } from 'react-i18next';
 import { useThemeStore } from '../store/useThemeStore';
 import { useBabyStore } from '../store/useBabyStore';
 import { Camera, X, Check, User } from 'lucide-react-native';
+import { DatePickerInput } from './DatePickerInput';
 
 export function ProfileModal() {
   const { t } = useTranslation();
@@ -26,9 +27,7 @@ export function ProfileModal() {
   const [name, setName] = useState('');
   const [sex, setSex] = useState<'male' | 'female'>('male');
   const [photoUri, setPhotoUri] = useState<string | null>(null);
-  const [birthYear, setBirthYear] = useState(new Date().getFullYear().toString());
-  const [birthMonth, setBirthMonth] = useState((new Date().getMonth() + 1).toString().padStart(2, '0'));
-  const [birthDay, setBirthDay] = useState(new Date().getDate().toString().padStart(2, '0'));
+  const [birthDate, setBirthDate] = useState<number>(Date.now());
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
@@ -36,18 +35,12 @@ export function ProfileModal() {
       setName(baby.name);
       setSex(baby.sex as 'male' | 'female');
       setPhotoUri(baby.photoUri ?? null);
-      const d = new Date(baby.birthDate);
-      setBirthYear(d.getFullYear().toString());
-      setBirthMonth((d.getMonth() + 1).toString().padStart(2, '0'));
-      setBirthDay(d.getDate().toString().padStart(2, '0'));
+      setBirthDate(baby.birthDate);
     } else {
       setName('');
       setSex('male');
       setPhotoUri(null);
-      const now = new Date();
-      setBirthYear(now.getFullYear().toString());
-      setBirthMonth((now.getMonth() + 1).toString().padStart(2, '0'));
-      setBirthDay(now.getDate().toString().padStart(2, '0'));
+      setBirthDate(Date.now());
     }
     setErrorMessage('');
   }, [baby, isProfileModalOpen]);
@@ -80,16 +73,6 @@ export function ProfileModal() {
       return;
     }
 
-    const y = parseInt(birthYear, 10);
-    const m = parseInt(birthMonth, 10) - 1;
-    const d = parseInt(birthDay, 10);
-
-    if (isNaN(y) || isNaN(m) || isNaN(d) || m < 0 || m > 11 || d < 1 || d > 31) {
-      setErrorMessage('Invalid birth date');
-      return;
-    }
-
-    const birthDate = new Date(y, m, d).getTime();
     if (birthDate > Date.now()) {
       setErrorMessage('Birth date cannot be in the future');
       return;
@@ -239,70 +222,12 @@ export function ProfileModal() {
             </View>
 
             {/* Birth Date Input */}
-            <View style={styles.inputGroup}>
-              <Text style={[styles.label, { color: colors.textSecondary }]}>{t('profile.birthDate')} *</Text>
-              <View style={styles.dateRow}>
-                <View style={styles.dateCol}>
-                  <Text style={[styles.dateSubLabel, { color: colors.textMuted }]}>DD</Text>
-                  <TextInput
-                    style={[
-                      styles.dateInput,
-                      {
-                        backgroundColor: colors.surfaceSubtle,
-                        color: colors.text,
-                        borderColor: colors.cardBorder,
-                      },
-                    ]}
-                    keyboardType="number-pad"
-                    maxLength={2}
-                    placeholder="01"
-                    placeholderTextColor={colors.textMuted}
-                    value={birthDay}
-                    onChangeText={setBirthDay}
-                  />
-                </View>
-
-                <View style={styles.dateCol}>
-                  <Text style={[styles.dateSubLabel, { color: colors.textMuted }]}>MM</Text>
-                  <TextInput
-                    style={[
-                      styles.dateInput,
-                      {
-                        backgroundColor: colors.surfaceSubtle,
-                        color: colors.text,
-                        borderColor: colors.cardBorder,
-                      },
-                    ]}
-                    keyboardType="number-pad"
-                    maxLength={2}
-                    placeholder="01"
-                    placeholderTextColor={colors.textMuted}
-                    value={birthMonth}
-                    onChangeText={setBirthMonth}
-                  />
-                </View>
-
-                <View style={[styles.dateCol, { flex: 1.5 }]}>
-                  <Text style={[styles.dateSubLabel, { color: colors.textMuted }]}>YYYY</Text>
-                  <TextInput
-                    style={[
-                      styles.dateInput,
-                      {
-                        backgroundColor: colors.surfaceSubtle,
-                        color: colors.text,
-                        borderColor: colors.cardBorder,
-                      },
-                    ]}
-                    keyboardType="number-pad"
-                    maxLength={4}
-                    placeholder="2026"
-                    placeholderTextColor={colors.textMuted}
-                    value={birthYear}
-                    onChangeText={setBirthYear}
-                  />
-                </View>
-              </View>
-            </View>
+            <DatePickerInput
+              value={birthDate}
+              onChange={setBirthDate}
+              label={`${t('profile.birthDate')} *`}
+              maximumDate={new Date()}
+            />
 
             {/* Action Buttons */}
             <View style={styles.actionRow}>
@@ -422,26 +347,6 @@ const styles = StyleSheet.create({
   },
   segmentText: {
     fontSize: 15,
-    fontWeight: '600',
-  },
-  dateRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  dateCol: {
-    flex: 1,
-  },
-  dateSubLabel: {
-    fontSize: 12,
-    marginBottom: 4,
-    fontWeight: '500',
-  },
-  dateInput: {
-    borderRadius: 12,
-    borderWidth: 1,
-    paddingVertical: 10,
-    textAlign: 'center',
-    fontSize: 16,
     fontWeight: '600',
   },
   actionRow: {

@@ -2,7 +2,7 @@
   "name": "baby-tracker",
   "description": "Baby Tracker application with React Native and Expo",
   "license": "MIT",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "main": "index.ts",
   "scripts": {
     "start": "expo start",
@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",
+    "@react-native-community/datetimepicker": "8.4.4",
     "drizzle-orm": "^0.45.2",
     "expo": "~54.0.0",
     "expo-asset": "~12.0.13",

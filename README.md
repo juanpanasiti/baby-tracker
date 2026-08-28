@@ -25,11 +25,12 @@ Baby Tracker helps parents and caregivers log and monitor essential baby routine
 
 ## Tech Stack
 
-- **Framework**: React Native + Expo (SDK 52)
+- **Framework**: React Native + Expo (SDK 54)
 - **Language**: TypeScript (strictly typed, `noImplicitAny`)
 - **Database & Storage**: `expo-sqlite` + `drizzle-orm` (type-safe SQLite persistence)
 - **State Management**: `zustand` + `@react-native-async-storage/async-storage`
 - **Native Integrations**:
+  - `@react-native-community/datetimepicker`: Native OS date and time picker dialogs (Android Material & iOS modal)
   - `expo-notifications`: Local push notifications and Android notification channels
   - `expo-calendar`: Native device calendar event creation and sync
   - `expo-image-picker`: Baby profile avatar selection
@@ -46,7 +47,8 @@ Baby Tracker helps parents and caregivers log and monitor essential baby routine
 │   ├── components/                # Reusable UI components & modals
 │   │   ├── AppointmentModal.tsx   # Medical appointment scheduler
 │   │   ├── BottomNavBar.tsx       # Bottom navigation tabs
-│   │   ├── DateTimePickerInput.tsx # Reusable datetime picker with quick presets
+│   │   ├── DatePickerInput.tsx    # Reusable date-only picker with constraints
+│   │   ├── DateTimePickerInput.tsx # Reusable datetime picker with native dialogs & presets
 │   │   ├── DiaperModal.tsx        # Diaper change logger & editor
 │   │   ├── FeedingModal.tsx       # Breast & bottle feeding logger & editor
 │   │   ├── FeedingReminderPrompt.tsx # Next feeding alarm scheduler

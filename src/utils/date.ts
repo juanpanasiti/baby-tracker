@@ -55,15 +55,17 @@ export function formatRelativeTime(timestampMs: number, isSpanish = false): stri
 }
 
 /**
- * Formats timestamp to HH:MM format.
+ * Formats timestamp to HH:MM format (24-hour).
  */
 export function formatTimeOnly(timestampMs: number): string {
   const date = new Date(timestampMs);
-  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  return `${hours}:${minutes}`;
 }
 
 /**
- * Formats timestamp to short date string (e.g., "Aug 26" or "26/08/2026").
+ * Formats timestamp to short date string (e.g., "Aug 26" or "26 ago").
  */
 export function formatShortDate(timestampMs: number, locale = 'en'): string {
   const date = new Date(timestampMs);
@@ -74,14 +76,28 @@ export function formatShortDate(timestampMs: number, locale = 'en'): string {
 }
 
 /**
- * Formats timestamp to full date string.
+ * Formats timestamp to a full localized date string (e.g., "Aug 28, 2026" or "28 ago 2026").
+ */
+export function formatDateOnly(timestampMs: number, locale = 'en'): string {
+  const date = new Date(timestampMs);
+  return date.toLocaleDateString(locale === 'es' ? 'es-ES' : 'en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
+/**
+ * Formats timestamp to full date and time string (e.g. "Aug 28, 2026, 15:30").
  */
 export function formatFullDateTime(timestampMs: number, locale = 'en'): string {
   const date = new Date(timestampMs);
-  return date.toLocaleDateString(locale === 'es' ? 'es-ES' : 'en-US', {
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+  return `${formatDateOnly(timestampMs, locale)}, ${formatTimeOnly(timestampMs)}`;
+}
+
+/**
+ * Alias for formatted date and time display.
+ */
+export function formatDateTimeDisplay(timestampMs: number, locale = 'en'): string {
+  return formatFullDateTime(timestampMs, locale);
 }

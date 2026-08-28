@@ -1,4 +1,4 @@
-import { calculateBabyAge, formatRelativeTime, formatTimeOnly } from '../utils/date';
+import { calculateBabyAge, formatRelativeTime, formatTimeOnly, formatDateOnly, formatDateTimeDisplay } from '../utils/date';
 import { generateId } from '../utils/id';
 
 describe('Utility Functions', () => {
@@ -51,7 +51,26 @@ describe('Utility Functions', () => {
     it('returns HH:MM formatted string', () => {
       const date = new Date(2026, 7, 26, 14, 30);
       const timeStr = formatTimeOnly(date.getTime());
-      expect(timeStr).toMatch(/\d{2}:\d{2}/);
+      expect(timeStr).toBe('14:30');
+    });
+  });
+
+  describe('formatDateOnly', () => {
+    it('returns localized date formatted string', () => {
+      const date = new Date(2026, 7, 26, 14, 30);
+      const enDate = formatDateOnly(date.getTime(), 'en');
+      const esDate = formatDateOnly(date.getTime(), 'es');
+      expect(enDate).toContain('2026');
+      expect(esDate).toContain('2026');
+    });
+  });
+
+  describe('formatDateTimeDisplay', () => {
+    it('returns localized date and time formatted string', () => {
+      const date = new Date(2026, 7, 26, 14, 30);
+      const enDateTime = formatDateTimeDisplay(date.getTime(), 'en');
+      expect(enDateTime).toContain('14:30');
+      expect(enDateTime).toContain('2026');
     });
   });
 });

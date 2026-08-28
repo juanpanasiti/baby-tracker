@@ -15,7 +15,8 @@ import { useTranslation } from 'react-i18next';
 import { useThemeStore } from '../store/useThemeStore';
 import { useAppointmentStore } from '../store/useAppointmentStore';
 import { useBabyStore } from '../store/useBabyStore';
-import { X, Check, Calendar as CalendarIcon, Clock, Bell, MapPin } from 'lucide-react-native';
+import { X, Check, Calendar as CalendarIcon, Clock, Bell } from 'lucide-react-native';
+import { DateTimePickerInput } from './DateTimePickerInput';
 
 export function AppointmentModal() {
   const { t } = useTranslation();
@@ -29,13 +30,15 @@ export function AppointmentModal() {
   const [location, setLocation] = useState('');
   const [notes, setNotes] = useState('');
 
-  // Date and Time inputs
-  const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
-  const [day, setDay] = useState(tomorrow.getDate().toString().padStart(2, '0'));
-  const [month, setMonth] = useState((tomorrow.getMonth() + 1).toString().padStart(2, '0'));
-  const [year, setYear] = useState(tomorrow.getFullYear().toString());
-  const [hours, setHours] = useState('10');
-  const [minutes, setMinutes] = useState('00');
+  // Date and Time timestamp (default to tomorrow at 10:00 AM)
+  const getInitialAppointmentDate = () => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    d.setHours(10, 0, 0, 0);
+    return d.getTime();
+  };
+
+  const [appointmentDate, setAppointmentDate] = useState(getInitialAppointmentDate);
 
   // Sync and Reminder toggles
   const [syncToCalendar, setSyncToCalendar] = useState(true);
@@ -50,19 +53,6 @@ export function AppointmentModal() {
       setErrorMsg(t('common.required') + ': ' + t('appointments.appointmentTitle'));
       return;
     }
-
-    const d = parseInt(day, 10);
-    const m = parseInt(month, 10) - 1;
-    const y = parseInt(year, 10);
-    const hr = parseInt(hours, 10);
-    const min = parseInt(minutes, 10);
-
-    if (isNaN(d) || isNaN(m) || isNaN(y) || isNaN(hr) || isNaN(min)) {
-      setErrorMsg('Invalid date or time');
-      return;
-    }
-
-    const appointmentDate = new Date(y, m, d, hr, min).getTime();
 
     try {
       await createAppointment(baby.id, {
@@ -83,6 +73,7 @@ export function AppointmentModal() {
       setSpecialty('');
       setLocation('');
       setNotes('');
+      setAppointmentDate(getInitialAppointmentDate());
       setErrorMsg('');
     } catch (e: unknown) {
       setErrorMsg(e instanceof Error ? e.message : 'Error saving appointment');
@@ -175,72 +166,13 @@ export function AppointmentModal() {
               </View>
             </View>
 
-            {/* Date & Time Inputs */}
-            <Text style={[styles.label, { color: colors.textSecondary }]}>{t('appointments.dateTime')}</Text>
-            <View style={styles.dateTimeGrid}>
-              {/* Date */}
-              <View style={styles.dateSection}>
-                <View style={styles.dateSubRow}>
-                  <View style={styles.dateCol}>
-                    <Text style={[styles.subLabel, { color: colors.textMuted }]}>DD</Text>
-                    <TextInput
-                      style={[styles.smallInput, { backgroundColor: colors.surfaceSubtle, color: colors.text, borderColor: colors.cardBorder }]}
-                      keyboardType="number-pad"
-                      maxLength={2}
-                      value={day}
-                      onChangeText={setDay}
-                    />
-                  </View>
-                  <View style={styles.dateCol}>
-                    <Text style={[styles.subLabel, { color: colors.textMuted }]}>MM</Text>
-                    <TextInput
-                      style={[styles.smallInput, { backgroundColor: colors.surfaceSubtle, color: colors.text, borderColor: colors.cardBorder }]}
-                      keyboardType="number-pad"
-                      maxLength={2}
-                      value={month}
-                      onChangeText={setMonth}
-                    />
-                  </View>
-                  <View style={[styles.dateCol, { flex: 1.4 }]}>
-                    <Text style={[styles.subLabel, { color: colors.textMuted }]}>YYYY</Text>
-                    <TextInput
-                      style={[styles.smallInput, { backgroundColor: colors.surfaceSubtle, color: colors.text, borderColor: colors.cardBorder }]}
-                      keyboardType="number-pad"
-                      maxLength={4}
-                      value={year}
-                      onChangeText={setYear}
-                    />
-                  </View>
-                </View>
-              </View>
-
-              {/* Time */}
-              <View style={styles.timeSection}>
-                <View style={styles.dateSubRow}>
-                  <View style={styles.dateCol}>
-                    <Text style={[styles.subLabel, { color: colors.textMuted }]}>HH</Text>
-                    <TextInput
-                      style={[styles.smallInput, { backgroundColor: colors.surfaceSubtle, color: colors.text, borderColor: colors.cardBorder }]}
-                      keyboardType="number-pad"
-                      maxLength={2}
-                      value={hours}
-                      onChangeText={setHours}
-                    />
-                  </View>
-                  <Text style={[styles.colon, { color: colors.text }]}>:</Text>
-                  <View style={styles.dateCol}>
-                    <Text style={[styles.subLabel, { color: colors.textMuted }]}>MM</Text>
-                    <TextInput
-                      style={[styles.smallInput, { backgroundColor: colors.surfaceSubtle, color: colors.text, borderColor: colors.cardBorder }]}
-                      keyboardType="number-pad"
-                      maxLength={2}
-                      value={minutes}
-                      onChangeText={setMinutes}
-                    />
-                  </View>
-                </View>
-              </View>
-            </View>
+            {/* Date & Time Input */}
+            <DateTimePickerInput
+              value={appointmentDate}
+              onChange={setAppointmentDate}
+              showPresets={false}
+              label={t('appointments.dateTime') || 'Date & Time'}
+            />
 
             {/* Location */}
             <View style={styles.inputGroup}>
@@ -413,44 +345,6 @@ const styles = StyleSheet.create({
   textArea: {
     height: 70,
     textAlignVertical: 'top',
-  },
-  dateTimeGrid: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 14,
-  },
-  dateSection: {
-    flex: 1.8,
-  },
-  timeSection: {
-    flex: 1.2,
-  },
-  dateSubRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  dateCol: {
-    flex: 1,
-  },
-  subLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    marginBottom: 4,
-    textAlign: 'center',
-  },
-  smallInput: {
-    borderRadius: 12,
-    borderWidth: 1,
-    paddingVertical: 10,
-    textAlign: 'center',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  colon: {
-    fontSize: 20,
-    fontWeight: '700',
-    marginTop: 14,
   },
   togglesCard: {
     borderRadius: 16,

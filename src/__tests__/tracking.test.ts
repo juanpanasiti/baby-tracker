@@ -1,6 +1,7 @@
 import { useFeedingStore } from '../store/useFeedingStore';
 import { useDiaperStore } from '../store/useDiaperStore';
-import { type Feeding, type Diaper } from '../db/schema';
+import { useAppointmentStore } from '../store/useAppointmentStore';
+import { type Feeding, type Diaper, type Appointment } from '../db/schema';
 
 // Mock repositories and services to test store state and logic
 jest.mock('../db/repositories/feedingRepository', () => ({
@@ -23,6 +24,15 @@ jest.mock('../db/repositories/diaperRepository', () => ({
   },
 }));
 
+jest.mock('../db/repositories/appointmentRepository', () => ({
+  appointmentRepository: {
+    getAppointmentsByBabyId: jest.fn().mockResolvedValue([]),
+    getNextAppointment: jest.fn().mockResolvedValue(null),
+    createAppointment: jest.fn().mockImplementation((data) => Promise.resolve({ id: 'appt-1', ...data })),
+    deleteAppointment: jest.fn().mockResolvedValue(undefined),
+  },
+}));
+
 jest.mock('../db/repositories/reminderRepository', () => ({
   reminderRepository: {
     getNextActiveFeedingReminder: jest.fn().mockResolvedValue(null),
@@ -34,7 +44,15 @@ jest.mock('../db/repositories/reminderRepository', () => ({
 jest.mock('../services/notificationService', () => ({
   notificationService: {
     scheduleFeedingAlarm: jest.fn().mockResolvedValue({ notificationId: 'notif-1', targetTime: Date.now() + 10000 }),
+    scheduleAppointmentReminder: jest.fn().mockResolvedValue('notif-appt-1'),
     cancelNotification: jest.fn().mockResolvedValue(undefined),
+  },
+}));
+
+jest.mock('../services/calendarService', () => ({
+  calendarService: {
+    addEventToCalendar: jest.fn().mockResolvedValue('cal-event-1'),
+    removeEventFromCalendar: jest.fn().mockResolvedValue(undefined),
   },
 }));
 
@@ -163,5 +181,43 @@ describe('Diaper Store Editing and Custom Timestamps', () => {
 
     expect(useDiaperStore.getState().isDiaperModalOpen).toBe(false);
     expect(useDiaperStore.getState().editingDiaper).toBeNull();
+  });
+});
+
+describe('Appointment Store and Custom Timestamps', () => {
+  beforeEach(() => {
+    useAppointmentStore.setState({
+      appointments: [],
+      nextAppointment: null,
+      isLoading: false,
+      isAppointmentModalOpen: false,
+      editingAppointment: null,
+    });
+  });
+
+  it('opens and closes appointment modal', () => {
+    useAppointmentStore.getState().openAppointmentModal();
+    expect(useAppointmentStore.getState().isAppointmentModalOpen).toBe(true);
+
+    useAppointmentStore.getState().closeAppointmentModal();
+    expect(useAppointmentStore.getState().isAppointmentModalOpen).toBe(false);
+  });
+
+  it('creates an appointment with selected timestamp and closes modal', async () => {
+    const targetTimestamp = Date.now() + 48 * 60 * 60 * 1000;
+    const created = await useAppointmentStore.getState().createAppointment('baby-1', {
+      title: '6 Month Checkup',
+      doctorName: 'Dr. Smith',
+      specialty: 'Pediatrics',
+      appointmentDate: targetTimestamp,
+      location: 'Children Hospital',
+      notes: 'Bring vaccination record',
+      syncToCalendar: true,
+      remind24h: true,
+      remind2h: false,
+    });
+
+    expect(created.appointmentDate).toBe(targetTimestamp);
+    expect(useAppointmentStore.getState().isAppointmentModalOpen).toBe(false);
   });
 });

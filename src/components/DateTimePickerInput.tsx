@@ -1,177 +1,201 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Platform, Modal } from 'react-native';
+import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useTranslation } from 'react-i18next';
+import { Calendar as CalendarIcon, Clock } from 'lucide-react-native';
 import { useThemeStore } from '../store/useThemeStore';
-import { Clock, Calendar as CalendarIcon } from 'lucide-react-native';
+import { formatDateOnly, formatTimeOnly } from '../utils/date';
 
 interface DateTimePickerInputProps {
   value: number;
   onChange: (timestamp: number) => void;
   label?: string;
+  showPresets?: boolean;
+  maximumDate?: Date;
+  minimumDate?: Date;
 }
 
-export function DateTimePickerInput({ value, onChange, label }: DateTimePickerInputProps) {
-  const { t } = useTranslation();
+export function DateTimePickerInput({
+  value,
+  onChange,
+  label,
+  showPresets = true,
+  maximumDate,
+  minimumDate,
+}: DateTimePickerInputProps) {
+  const { t, i18n } = useTranslation();
   const colors = useThemeStore((state) => state.colors);
 
-  const dateObj = new Date(value);
-  const [day, setDay] = useState(dateObj.getDate().toString().padStart(2, '0'));
-  const [month, setMonth] = useState((dateObj.getMonth() + 1).toString().padStart(2, '0'));
-  const [year, setYear] = useState(dateObj.getFullYear().toString());
-  const [hours, setHours] = useState(dateObj.getHours().toString().padStart(2, '0'));
-  const [minutes, setMinutes] = useState(dateObj.getMinutes().toString().padStart(2, '0'));
+  const [activePickerMode, setActivePickerMode] = useState<'date' | 'time' | null>(null);
+  const [tempDate, setTempDate] = useState<Date>(new Date(value));
 
-  // Sync internal input fields whenever value prop updates
-  useEffect(() => {
-    const d = new Date(value);
-    setDay(d.getDate().toString().padStart(2, '0'));
-    setMonth((d.getMonth() + 1).toString().padStart(2, '0'));
-    setYear(d.getFullYear().toString());
-    setHours(d.getHours().toString().padStart(2, '0'));
-    setMinutes(d.getMinutes().toString().padStart(2, '0'));
-  }, [value]);
-
-  const updateTimestamp = (dStr: string, mStr: string, yStr: string, hStr: string, minStr: string) => {
-    const d = parseInt(dStr, 10);
-    const m = parseInt(mStr, 10) - 1;
-    const y = parseInt(yStr, 10);
-    const hr = parseInt(hStr, 10);
-    const min = parseInt(minStr, 10);
-
-    if (!isNaN(d) && !isNaN(m) && !isNaN(y) && !isNaN(hr) && !isNaN(min)) {
-      if (d >= 1 && d <= 31 && m >= 0 && m <= 11 && y >= 2000 && y <= 2100 && hr >= 0 && hr <= 23 && min >= 0 && min <= 59) {
-        const newDate = new Date(y, m, d, hr, min);
-        onChange(newDate.getTime());
-      }
-    }
-  };
+  const currentDate = new Date(value);
+  const locale = i18n.language.startsWith('es') ? 'es' : 'en';
 
   const handleQuickPreset = (offsetMinutes: number) => {
     const targetTimestamp = Date.now() - offsetMinutes * 60 * 1000;
     onChange(targetTimestamp);
   };
 
+  const handlePickerChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
+    if (Platform.OS === 'android') {
+      setActivePickerMode(null);
+      if (event.type === 'set' && selectedDate) {
+        applyDateOrTimeChange(selectedDate, activePickerMode);
+      }
+    } else {
+      // iOS
+      if (selectedDate) {
+        setTempDate(selectedDate);
+      }
+    }
+  };
+
+  const applyDateOrTimeChange = (selected: Date, mode: 'date' | 'time' | null) => {
+    const result = new Date(value);
+    if (mode === 'date') {
+      result.setFullYear(selected.getFullYear(), selected.getMonth(), selected.getDate());
+    } else if (mode === 'time') {
+      result.setHours(selected.getHours(), selected.getMinutes(), 0, 0);
+    }
+    onChange(result.getTime());
+  };
+
+  const openPicker = (mode: 'date' | 'time') => {
+    setTempDate(new Date(value));
+    setActivePickerMode(mode);
+  };
+
+  const handleIosConfirm = () => {
+    applyDateOrTimeChange(tempDate, activePickerMode);
+    setActivePickerMode(null);
+  };
+
+  const handleIosCancel = () => {
+    setActivePickerMode(null);
+  };
+
   return (
     <View style={styles.container}>
       <Text style={[styles.label, { color: colors.textSecondary }]}>
-        {label || t('appointments.dateTime')}
+        {label || t('appointments.dateTime') || 'Date & Time'}
       </Text>
 
       {/* Quick Presets */}
-      <View style={styles.presetsRow}>
+      {showPresets && (
+        <View style={styles.presetsRow}>
+          <TouchableOpacity
+            style={[styles.presetButton, { backgroundColor: colors.surfaceSubtle, borderColor: colors.cardBorder }]}
+            onPress={() => handleQuickPreset(0)}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.presetText, { color: colors.primary }]}>{t('common.now') || 'Now'}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.presetButton, { backgroundColor: colors.surfaceSubtle, borderColor: colors.cardBorder }]}
+            onPress={() => handleQuickPreset(15)}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.presetText, { color: colors.textSecondary }]}>-15 min</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.presetButton, { backgroundColor: colors.surfaceSubtle, borderColor: colors.cardBorder }]}
+            onPress={() => handleQuickPreset(30)}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.presetText, { color: colors.textSecondary }]}>-30 min</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.presetButton, { backgroundColor: colors.surfaceSubtle, borderColor: colors.cardBorder }]}
+            onPress={() => handleQuickPreset(60)}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.presetText, { color: colors.textSecondary }]}>-1 hr</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* Date & Time Buttons */}
+      <View style={styles.buttonsRow}>
         <TouchableOpacity
-          style={[styles.presetButton, { backgroundColor: colors.surfaceSubtle, borderColor: colors.cardBorder }]}
-          onPress={() => handleQuickPreset(0)}
+          style={[styles.pickerButton, { backgroundColor: colors.surfaceSubtle, borderColor: colors.cardBorder }]}
+          onPress={() => openPicker('date')}
+          activeOpacity={0.7}
         >
-          <Text style={[styles.presetText, { color: colors.primary }]}>{t('common.now') || 'Now'}</Text>
+          <CalendarIcon size={18} color={colors.primary} style={styles.buttonIcon} />
+          <View style={styles.buttonTextContainer}>
+            <Text style={[styles.buttonLabel, { color: colors.textMuted }]}>{t('appointments.date') || 'Date'}</Text>
+            <Text style={[styles.buttonValue, { color: colors.text }]}>{formatDateOnly(value, locale)}</Text>
+          </View>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.presetButton, { backgroundColor: colors.surfaceSubtle, borderColor: colors.cardBorder }]}
-          onPress={() => handleQuickPreset(15)}
+          style={[styles.pickerButton, { backgroundColor: colors.surfaceSubtle, borderColor: colors.cardBorder }]}
+          onPress={() => openPicker('time')}
+          activeOpacity={0.7}
         >
-          <Text style={[styles.presetText, { color: colors.textSecondary }]}>-15 min</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.presetButton, { backgroundColor: colors.surfaceSubtle, borderColor: colors.cardBorder }]}
-          onPress={() => handleQuickPreset(30)}
-        >
-          <Text style={[styles.presetText, { color: colors.textSecondary }]}>-30 min</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.presetButton, { backgroundColor: colors.surfaceSubtle, borderColor: colors.cardBorder }]}
-          onPress={() => handleQuickPreset(60)}
-        >
-          <Text style={[styles.presetText, { color: colors.textSecondary }]}>-1 hr</Text>
+          <Clock size={18} color={colors.primary} style={styles.buttonIcon} />
+          <View style={styles.buttonTextContainer}>
+            <Text style={[styles.buttonLabel, { color: colors.textMuted }]}>{t('appointments.time') || 'Time'}</Text>
+            <Text style={[styles.buttonValue, { color: colors.text }]}>{formatTimeOnly(value)}</Text>
+          </View>
         </TouchableOpacity>
       </View>
 
-      {/* Date & Time Inputs */}
-      <View style={styles.inputsGrid}>
-        {/* Date Inputs */}
-        <View style={styles.dateColContainer}>
-          <View style={styles.subRow}>
-            <View style={styles.inputCol}>
-              <Text style={[styles.subLabel, { color: colors.textMuted }]}>DD</Text>
-              <TextInput
-                style={[styles.input, { backgroundColor: colors.surfaceSubtle, color: colors.text, borderColor: colors.cardBorder }]}
-                keyboardType="number-pad"
-                maxLength={2}
-                value={day}
-                onChangeText={(val) => {
-                  setDay(val);
-                  updateTimestamp(val, month, year, hours, minutes);
-                }}
-              />
-            </View>
+      {/* Android Picker */}
+      {Platform.OS === 'android' && activePickerMode !== null && (
+        <DateTimePicker
+          value={currentDate}
+          mode={activePickerMode}
+          is24Hour={true}
+          display="default"
+          onChange={handlePickerChange}
+          maximumDate={maximumDate}
+          minimumDate={minimumDate}
+        />
+      )}
 
-            <View style={styles.inputCol}>
-              <Text style={[styles.subLabel, { color: colors.textMuted }]}>MM</Text>
-              <TextInput
-                style={[styles.input, { backgroundColor: colors.surfaceSubtle, color: colors.text, borderColor: colors.cardBorder }]}
-                keyboardType="number-pad"
-                maxLength={2}
-                value={month}
-                onChangeText={(val) => {
-                  setMonth(val);
-                  updateTimestamp(day, val, year, hours, minutes);
-                }}
-              />
-            </View>
+      {/* iOS Modal Picker */}
+      {Platform.OS === 'ios' && (
+        <Modal
+          visible={activePickerMode !== null}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={handleIosCancel}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={[styles.iosModalContent, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}>
+              <View style={[styles.iosHeader, { borderBottomColor: colors.cardBorder }]}>
+                <TouchableOpacity onPress={handleIosCancel}>
+                  <Text style={[styles.iosHeaderBtn, { color: colors.textMuted }]}>{t('common.cancel') || 'Cancel'}</Text>
+                </TouchableOpacity>
+                <Text style={[styles.iosHeaderTitle, { color: colors.text }]}>
+                  {activePickerMode === 'date' ? (t('appointments.date') || 'Date') : (t('appointments.time') || 'Time')}
+                </Text>
+                <TouchableOpacity onPress={handleIosConfirm}>
+                  <Text style={[styles.iosHeaderBtn, { color: colors.primary, fontWeight: '700' }]}>{t('common.done') || 'Done'}</Text>
+                </TouchableOpacity>
+              </View>
 
-            <View style={[styles.inputCol, { flex: 1.3 }]}>
-              <Text style={[styles.subLabel, { color: colors.textMuted }]}>YYYY</Text>
-              <TextInput
-                style={[styles.input, { backgroundColor: colors.surfaceSubtle, color: colors.text, borderColor: colors.cardBorder }]}
-                keyboardType="number-pad"
-                maxLength={4}
-                value={year}
-                onChangeText={(val) => {
-                  setYear(val);
-                  updateTimestamp(day, month, val, hours, minutes);
-                }}
-              />
-            </View>
-          </View>
-        </View>
-
-        {/* Time Inputs */}
-        <View style={styles.timeColContainer}>
-          <View style={styles.subRow}>
-            <View style={styles.inputCol}>
-              <Text style={[styles.subLabel, { color: colors.textMuted }]}>HH</Text>
-              <TextInput
-                style={[styles.input, { backgroundColor: colors.surfaceSubtle, color: colors.text, borderColor: colors.cardBorder }]}
-                keyboardType="number-pad"
-                maxLength={2}
-                value={hours}
-                onChangeText={(val) => {
-                  setHours(val);
-                  updateTimestamp(day, month, year, val, minutes);
-                }}
-              />
-            </View>
-
-            <Text style={[styles.colon, { color: colors.text }]}>:</Text>
-
-            <View style={styles.inputCol}>
-              <Text style={[styles.subLabel, { color: colors.textMuted }]}>MM</Text>
-              <TextInput
-                style={[styles.input, { backgroundColor: colors.surfaceSubtle, color: colors.text, borderColor: colors.cardBorder }]}
-                keyboardType="number-pad"
-                maxLength={2}
-                value={minutes}
-                onChangeText={(val) => {
-                  setMinutes(val);
-                  updateTimestamp(day, month, year, hours, val);
-                }}
-              />
+              {activePickerMode !== null && (
+                <DateTimePicker
+                  value={tempDate}
+                  mode={activePickerMode}
+                  display="spinner"
+                  onChange={handlePickerChange}
+                  maximumDate={maximumDate}
+                  minimumDate={minimumDate}
+                  textColor={colors.text}
+                  style={styles.iosPicker}
+                />
+              )}
             </View>
           </View>
-        </View>
-      </View>
+        </Modal>
+      )}
     </View>
   );
 }
@@ -192,7 +216,7 @@ const styles = StyleSheet.create({
   },
   presetButton: {
     flex: 1,
-    paddingVertical: 6,
+    paddingVertical: 7,
     paddingHorizontal: 4,
     borderRadius: 8,
     borderWidth: 1,
@@ -203,43 +227,62 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
   },
-  inputsGrid: {
+  buttonsRow: {
     flexDirection: 'row',
     gap: 12,
-    alignItems: 'flex-start',
   },
-  dateColContainer: {
-    flex: 1.4,
-  },
-  timeColContainer: {
+  pickerButton: {
     flex: 1,
-  },
-  subRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-  },
-  inputCol: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  subLabel: {
-    fontSize: 11,
-    marginBottom: 4,
-    fontWeight: '500',
-  },
-  input: {
-    width: '100%',
-    height: 42,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 10,
     borderWidth: 1,
-    borderRadius: 8,
-    textAlign: 'center',
-    fontSize: 15,
+  },
+  buttonIcon: {
+    marginRight: 10,
+  },
+  buttonTextContainer: {
+    flex: 1,
+  },
+  buttonLabel: {
+    fontSize: 11,
+    fontWeight: '500',
+    marginBottom: 2,
+    textTransform: 'uppercase',
+  },
+  buttonValue: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  iosModalContent: {
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    borderWidth: 1,
+    paddingBottom: 24,
+  },
+  iosHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+  },
+  iosHeaderTitle: {
+    fontSize: 16,
     fontWeight: '600',
   },
-  colon: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginTop: 14,
+  iosHeaderBtn: {
+    fontSize: 15,
+  },
+  iosPicker: {
+    height: 200,
   },
 });

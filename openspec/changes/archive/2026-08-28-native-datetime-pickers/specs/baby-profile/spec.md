@@ -1,8 +1,4 @@
-## Purpose
-
-Provides storage and management for the baby profile details including name, sex, birth date, and avatar photo.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Create and Edit Baby Profile
 The system SHALL allow users to create and update a baby profile with name, sex, birth date selected via a native date picker (preventing future dates), and an optional avatar photo.

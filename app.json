@@ -2,7 +2,7 @@
   "expo": {
     "name": "Baby Tracker",
     "slug": "baby-tracker",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "scheme": "babytracker",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -16,6 +16,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.babytracker.app",
+      "buildNumber": "2",
       "infoPlist": {
         "NSRemindersUsageDescription": "Allow Baby Tracker to set reminders for baby appointments.",
         "NSCalendarsUsageDescription": "Allow Baby Tracker to sync appointments with your calendar.",
@@ -24,6 +25,7 @@
     },
     "android": {
       "package": "com.babytracker.app",
+      "versionCode": 2,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#121212"
@@ -67,7 +69,8 @@
         }
       ],
       "expo-asset",
-      "expo-font"
+      "expo-font",
+      "@react-native-community/datetimepicker"
     ],
     "extra": {
       "eas": {
