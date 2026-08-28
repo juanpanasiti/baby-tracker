@@ -2,7 +2,7 @@
   "name": "baby-tracker",
   "description": "Baby Tracker application with React Native and Expo",
   "license": "MIT",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "main": "index.ts",
   "scripts": {
     "start": "expo start",

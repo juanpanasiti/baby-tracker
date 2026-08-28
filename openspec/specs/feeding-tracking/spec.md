@@ -30,6 +30,17 @@ The system SHALL support logging bottle feedings with recorded volume in millili
 - **WHEN** the user taps the date or time button in the bottle feeding modal, chooses values using the native picker, and saves
 - **THEN** the system SHALL persist the bottle feeding record with the selected custom timestamp
 
+### Requirement: Quick Log Feeding Selection
+The system SHALL support opening the feeding modal directly into the designated feeding mode ('breast' or 'bottle') when initiated from specific quick action controls on the dashboard.
+
+#### Scenario: User taps Bottle quick action button
+- **WHEN** the user taps the "Biberón" (Bottle) quick log button on the dashboard
+- **THEN** the system SHALL open the feeding modal with the 'bottle' feeding type pre-selected and bottle inputs visible
+
+#### Scenario: User taps Breast quick action button
+- **WHEN** the user taps the "Pecho" (Breast) quick log button on the dashboard
+- **THEN** the system SHALL open the feeding modal with the 'breast' feeding type pre-selected and breast timer/manual controls visible
+
 ### Requirement: Prompt for Next Feeding Reminder
 The system SHALL display an interactive prompt upon saving any feeding log offering preset intervals (e.g., 2.5h, 3h, 3.5h, 4h, or custom time) to schedule a local push notification alarm.
 

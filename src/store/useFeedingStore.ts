@@ -12,6 +12,7 @@ interface FeedingState {
   isLoading: boolean;
   isFeedingModalOpen: boolean;
   editingFeeding: Feeding | null;
+  initialFeedingType?: 'breast' | 'bottle';
 
   // Active Nursing Timer
   timerSide: 'left' | 'right' | 'both' | null;
@@ -44,7 +45,7 @@ interface FeedingState {
   cancelActiveReminder: (babyId: string) => Promise<void>;
   cleanupStaleReminders: (babyId: string) => Promise<void>;
 
-  openFeedingModal: () => void;
+  openFeedingModal: (initialType?: 'breast' | 'bottle') => void;
   openEditFeedingModal: (feeding: Feeding) => void;
   closeFeedingModal: () => void;
   closeReminderPrompt: () => void;
@@ -67,6 +68,7 @@ export const useFeedingStore = create<FeedingState>((set, get) => ({
   isFeedingModalOpen: false,
 
   editingFeeding: null,
+  initialFeedingType: 'breast',
 
   timerSide: null,
   timerSeconds: 0,
@@ -268,7 +270,8 @@ export const useFeedingStore = create<FeedingState>((set, get) => ({
     }
   },
 
-  openFeedingModal: () => set({ isFeedingModalOpen: true, editingFeeding: null }),
+  openFeedingModal: (initialType: 'breast' | 'bottle' = 'breast') =>
+    set({ isFeedingModalOpen: true, editingFeeding: null, initialFeedingType: initialType }),
   openEditFeedingModal: (feeding: Feeding) => set({ isFeedingModalOpen: true, editingFeeding: feeding }),
   closeFeedingModal: () => set({ isFeedingModalOpen: false, editingFeeding: null }),
   closeReminderPrompt: () => set({ isReminderPromptOpen: false }),

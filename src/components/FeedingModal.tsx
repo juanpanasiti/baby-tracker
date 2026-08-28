@@ -24,6 +24,7 @@ export function FeedingModal() {
   const {
     isFeedingModalOpen,
     editingFeeding,
+    initialFeedingType,
     closeFeedingModal,
     createFeeding,
     updateFeeding,
@@ -84,7 +85,7 @@ export function FeedingModal() {
         setErrorMsg('');
         resetTimer();
       } else {
-        setFeedingType('breast');
+        setFeedingType(initialFeedingType || 'breast');
         setSelectedSide('left');
         setManualDurationMins('15');
         setAmountMl('120');
@@ -93,7 +94,7 @@ export function FeedingModal() {
         setErrorMsg('');
       }
     }
-  }, [isFeedingModalOpen, editingFeeding, resetTimer]);
+  }, [isFeedingModalOpen, editingFeeding, initialFeedingType, resetTimer]);
 
   const formatTimerDisplay = (totalSecs: number) => {
     const mins = Math.floor(totalSecs / 60);

@@ -206,14 +206,14 @@ export function DashboardScreen({ onNavigateToTimeline, onNavigateToAppointments
             subLabel={latestFeeding?.type === 'bottle' ? `${latestFeeding.amountMl}ml • ${formatRelativeTime(latestFeeding.timestamp, isSpanish)}` : undefined}
             icon={<Milk size={26} color={colors.bottle} />}
             color={colors.bottle}
-            onPress={openFeedingModal}
+            onPress={() => openFeedingModal('bottle')}
           />
           <QuickActionButton
             label={isTimerRunning ? `🤱 ${formatTimerMinSec(timerSeconds)}` : t('feeding.breast')}
             subLabel={isTimerRunning ? 'Timer active' : latestFeeding?.type === 'breast' ? formatRelativeTime(latestFeeding.timestamp, isSpanish) : undefined}
             icon={<Heart size={26} color={colors.breastfeeding} />}
             color={colors.breastfeeding}
-            onPress={openFeedingModal}
+            onPress={() => openFeedingModal('breast')}
           />
         </View>
 

@@ -72,15 +72,27 @@ describe('Feeding Store Editing and Custom Timestamps', () => {
     });
   });
 
-  it('opens and closes feeding modal in creation mode', () => {
+  it('opens and closes feeding modal in creation mode with default breast type', () => {
     const store = useFeedingStore.getState();
     store.openFeedingModal();
     expect(useFeedingStore.getState().isFeedingModalOpen).toBe(true);
     expect(useFeedingStore.getState().editingFeeding).toBeNull();
+    expect(useFeedingStore.getState().initialFeedingType).toBe('breast');
 
     useFeedingStore.getState().closeFeedingModal();
     expect(useFeedingStore.getState().isFeedingModalOpen).toBe(false);
     expect(useFeedingStore.getState().editingFeeding).toBeNull();
+  });
+
+  it('opens feeding modal in creation mode with bottle type', () => {
+    const store = useFeedingStore.getState();
+    store.openFeedingModal('bottle');
+    expect(useFeedingStore.getState().isFeedingModalOpen).toBe(true);
+    expect(useFeedingStore.getState().editingFeeding).toBeNull();
+    expect(useFeedingStore.getState().initialFeedingType).toBe('bottle');
+
+    useFeedingStore.getState().closeFeedingModal();
+    expect(useFeedingStore.getState().isFeedingModalOpen).toBe(false);
   });
 
   it('opens feeding modal in edit mode with prefilled feeding record', () => {
