@@ -160,6 +160,7 @@ export const useFeedingStore = create<FeedingState>((set, get) => ({
         alertMode,
         soundName: alarmSound,
         isExactTimestamp: options?.isExactTimestamp,
+        babyId,
       }
     );
 
@@ -200,6 +201,7 @@ export const useFeedingStore = create<FeedingState>((set, get) => ({
         alertMode,
         soundName,
         isExactTimestamp: true,
+        babyId,
       }
     );
 
@@ -234,6 +236,7 @@ export const useFeedingStore = create<FeedingState>((set, get) => ({
         alertMode,
         soundName,
         isExactTimestamp: true,
+        babyId,
       }
     );
 

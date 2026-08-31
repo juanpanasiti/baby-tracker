@@ -125,7 +125,12 @@
     "postpone15": "+15m",
     "postpone30": "+30m",
     "selectExactTime": "Set Exact Time",
-    "reminderUpdated": "Reminder updated successfully"
+    "reminderUpdated": "Reminder updated successfully",
+    "silence": "Silence",
+    "feedBaby": "Silence & Feed",
+    "snooze": "Snooze (+15m)",
+    "ringingTitle": "Feeding Alarm",
+    "ringingSubtitle": "Time to feed {{babyName}}"
   },
   "settings": {
     "title": "Settings",

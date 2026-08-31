@@ -18,6 +18,7 @@ import { useDiaperStore } from './src/store/useDiaperStore';
 import { useAppointmentStore } from './src/store/useAppointmentStore';
 
 import { usePreferencesStore } from './src/store/usePreferencesStore';
+import { notificationService } from './src/services/notificationService';
 import { DashboardScreen } from './src/screens/DashboardScreen';
 import { TimelineScreen } from './src/screens/TimelineScreen';
 import { AppointmentsScreen } from './src/screens/AppointmentsScreen';
@@ -30,6 +31,7 @@ import { FeedingReminderPrompt } from './src/components/FeedingReminderPrompt';
 import { EditReminderModal } from './src/components/EditReminderModal';
 import { DiaperModal } from './src/components/DiaperModal';
 import { AppointmentModal } from './src/components/AppointmentModal';
+import { FullScreenAlarmModal } from './src/components/FullScreenAlarmModal';
 
 export default function App() {
   const [isReady, setIsReady] = useState(false);
@@ -51,7 +53,12 @@ export default function App() {
         // 2. Load saved theme, language, and alert preferences
         await Promise.all([loadSavedTheme(), loadSavedLanguage(), usePreferencesStore.getState().loadPreferences()]);
 
-        // 3. Load Baby Profile
+        // 3. Initialize notification channels and listeners
+        const alarmSound = usePreferencesStore.getState().alarmSound;
+        await notificationService.setupChannels(alarmSound);
+        notificationService.initListeners();
+
+        // 4. Load Baby Profile
         await loadBaby();
       } catch (e) {
         console.error('Initialization error:', e);
@@ -123,6 +130,7 @@ export default function App() {
       <EditReminderModal />
       <DiaperModal />
       <AppointmentModal />
+      <FullScreenAlarmModal />
     </SafeAreaView>
   );
 }

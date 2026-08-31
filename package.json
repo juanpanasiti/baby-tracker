@@ -2,7 +2,7 @@
   "name": "baby-care",
   "description": "Baby Care application with React Native and Expo",
   "license": "MIT",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "main": "index.ts",
   "scripts": {
     "start": "expo start",
@@ -17,6 +17,7 @@
     "drizzle-orm": "^0.45.2",
     "expo": "~54.0.0",
     "expo-asset": "~12.0.13",
+    "expo-av": "~16.0.8",
     "expo-calendar": "~15.0.8",
     "expo-constants": "~18.0.14",
     "expo-font": "~14.0.12",

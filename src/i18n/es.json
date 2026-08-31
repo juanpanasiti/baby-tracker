@@ -125,7 +125,12 @@
     "postpone15": "+15m",
     "postpone30": "+30m",
     "selectExactTime": "Elegir Hora Exacta",
-    "reminderUpdated": "Recordatorio actualizado con éxito"
+    "reminderUpdated": "Recordatorio actualizado con éxito",
+    "silence": "Silenciar",
+    "feedBaby": "Silenciar y Alimentar",
+    "snooze": "Posponer (+15m)",
+    "ringingTitle": "Alarma de Comida",
+    "ringingSubtitle": "Hora de alimentar a {{babyName}}"
   },
   "settings": {
     "title": "Ajustes",

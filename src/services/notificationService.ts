@@ -1,19 +1,64 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import i18n from '../i18n';
+import { useAlarmRingingStore } from '../store/useAlarmRingingStore';
+
+export const FEEDING_ALARM_CATEGORY = 'feeding-alarm-category';
 
 // Configure default notification handler for foreground notifications
 Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-  }),
+  handleNotification: async (notification) => {
+    const data = notification.request.content.data;
+    const isAlarm = data?.alertMode === 'alarm';
+
+    // If it's a feeding alarm received in foreground, trigger the continuous alarm loop & UI
+    if (isAlarm && data?.type === 'feeding') {
+      useAlarmRingingStore.getState().triggerAlarm(
+        data.babyId as string | undefined,
+        data.babyName as string | undefined,
+        data.soundName as string | undefined
+      );
+    }
+
+    return {
+      shouldShowBanner: true,
+      shouldShowList: true,
+      shouldPlaySound: !isAlarm, // Alarm audio service handles looping audio for alarms
+      shouldSetBadge: true,
+    };
+  },
 });
 
 export const notificationService = {
+  listenersInitialized: false,
+
+  async setupCategories(): Promise<void> {
+    try {
+      await Notifications.setNotificationCategoryAsync(FEEDING_ALARM_CATEGORY, [
+        {
+          identifier: 'SILENCE_ALARM',
+          buttonTitle: i18n.t('alarms.silence', { defaultValue: 'Silence' }),
+          options: {
+            isDestructive: true,
+            opensAppToForeground: false,
+          },
+        },
+        {
+          identifier: 'SNOOZE_ALARM',
+          buttonTitle: i18n.t('alarms.snooze', { defaultValue: 'Snooze (+15m)' }),
+          options: {
+            opensAppToForeground: false,
+          },
+        },
+      ]);
+    } catch (e) {
+      console.warn('[notificationService] Failed to set notification categories:', e);
+    }
+  },
+
   async setupChannels(alarmSound = 'default'): Promise<void> {
+    await this.setupCategories();
+
     if (Platform.OS === 'android') {
       // 1. Standard discrete Daytime Feeding Notification
       await Notifications.setNotificationChannelAsync('feeding-notifications', {
@@ -67,6 +112,32 @@ export const notificationService = {
     }
   },
 
+  initListeners(): void {
+    if (this.listenersInitialized) return;
+    this.listenersInitialized = true;
+
+    // Handle user interaction with notification banner or action buttons
+    Notifications.addNotificationResponseReceivedListener((response) => {
+      const { actionIdentifier, notification } = response;
+      const data = notification.request.content.data;
+
+      if (data?.type === 'feeding') {
+        if (actionIdentifier === 'SILENCE_ALARM') {
+          useAlarmRingingStore.getState().silenceAlarm();
+        } else if (actionIdentifier === 'SNOOZE_ALARM') {
+          useAlarmRingingStore.getState().snoozeAlarm(15);
+        } else {
+          // Caregiver tapped the notification itself -> Trigger full screen alarm UI
+          useAlarmRingingStore.getState().triggerAlarm(
+            data.babyId as string | undefined,
+            data.babyName as string | undefined,
+            data.soundName as string | undefined
+          );
+        }
+      }
+    });
+  },
+
   async requestPermissions(): Promise<boolean> {
     const { status: existingStatus } = await Notifications.getPermissionsAsync();
     let finalStatus = existingStatus;
@@ -85,6 +156,7 @@ export const notificationService = {
       alertMode?: 'notification' | 'alarm';
       soundName?: string;
       isExactTimestamp?: boolean;
+      babyId?: string;
     }
   ): Promise<{ notificationId: string; targetTime: number }> {
     const alertMode = options?.alertMode || 'alarm';
@@ -115,7 +187,15 @@ export const notificationService = {
           ? Notifications.AndroidNotificationPriority.MAX
           : Notifications.AndroidNotificationPriority.HIGH,
         vibrate: isAlarm ? [0, 500, 250, 500, 250, 500] : [0, 250, 250, 250],
-        data: { type: 'feeding', targetTime, alertMode, soundName },
+        categoryIdentifier: isAlarm ? FEEDING_ALARM_CATEGORY : undefined,
+        data: {
+          type: 'feeding',
+          targetTime,
+          alertMode,
+          soundName,
+          babyName,
+          babyId: options?.babyId,
+        },
       },
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.DATE,
@@ -134,19 +214,22 @@ export const notificationService = {
     const isAlarm = alertMode === 'alarm';
     const channelId = isAlarm ? 'feeding-alarms' : 'feeding-notifications';
 
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title: isAlarm ? '⏰ Sound Preview / Alarma' : '🔔 Notification Preview / Notificación',
-        body: `Testing ${soundName} sound`,
-        sound: soundName !== 'default' ? soundName : true,
-        priority: isAlarm
-          ? Notifications.AndroidNotificationPriority.MAX
-          : Notifications.AndroidNotificationPriority.HIGH,
-        vibrate: isAlarm ? [0, 500, 250, 500] : [0, 250],
-        data: { type: 'preview', soundName },
-      },
-      trigger: null, // trigger immediately
-    });
+    if (isAlarm) {
+      // Test the continuous alarm loop in app
+      useAlarmRingingStore.getState().triggerAlarm(undefined, 'Baby', soundName);
+    } else {
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: '🔔 Notification Preview / Notificación',
+          body: `Testing ${soundName} sound`,
+          sound: soundName !== 'default' ? soundName : true,
+          priority: Notifications.AndroidNotificationPriority.HIGH,
+          vibrate: [0, 250],
+          data: { type: 'preview', soundName },
+        },
+        trigger: null, // trigger immediately
+      });
+    }
   },
 
   async scheduleAppointmentReminder(

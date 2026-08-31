@@ -11,6 +11,7 @@ Baby Care helps parents and caregivers log and monitor essential baby routines w
   - **Bottle Feeding**: Milliliter (ml) volume logging with quick-preset pill selectors.
   - **Custom Date & Time**: Set exact event timestamp with quick offsets (`Now`, `-15m`, `-30m`, `-1h`) and manual date/time inputs.
   - **Dual Alert Modes (Notification vs Loud Alarm)**: Choose between discrete daytime push notifications and loud, insistent nighttime waking alarms using Android `USAGE_ALARM` audio streams.
+  - **Continuous Looping Alarm & Full-Screen Intent**: Feeding alarms ring continuously in a loop at system alarm volume with custom ringtones (`alarm_digital`, `alarm_chime`, `alarm_bells`, `alarm_gentle`) until explicitly silenced or snoozed. On Android, full-screen intent wakes the device and presents the interactive alarm over the lockscreen.
   - **Next Feeding Alarms & Exact Time**: Interactive prompt following each log with intervals (2h, 2.5h, 3h, 3.5h, 4h) or custom exact time picker.
   - **Interactive Dashboard Banner & Quick Postpone**: Postpone active reminders with 1-tap buttons (`+15m`, `+30m`) or tap to open the full **Edit Reminder Modal** to adjust target time, toggle alert mode, or cancel.
 - **Diaper Changes**: Track diaper events (pee, poop, or both), rash indicators, custom timestamps, and care notes.
@@ -24,7 +25,7 @@ Baby Care helps parents and caregivers log and monitor essential baby routines w
 - **Theming, Localization & Preferences**:
   - **Themes**: Dark Mode (default) and Light Mode, persisted locally.
   - **Localization**: English (default) and Spanish, persisted locally.
-  - **Alarm Sound Customization**: Configurable alarm ringtone (System default, Digital clock, Gentle chimes, Soft bells, Lullaby harp) with test preview.
+  - **Alarm Sound Customization**: Configurable alarm ringtone (System default, Digital clock, Gentle chimes, Soft bells, Lullaby harp) with bundled high-quality `.wav` audio assets and test preview.
   - **Smart Night Mode**: Optional automatic suggestion that preselects Loud Alarm mode during nighttime hours (22:00 to 07:00).
 
 ## Tech Stack
@@ -35,7 +36,8 @@ Baby Care helps parents and caregivers log and monitor essential baby routines w
 - **State Management**: `zustand` + `@react-native-async-storage/async-storage`
 - **Native Integrations**:
   - `@react-native-community/datetimepicker`: Native OS date and time picker dialogs (Android Material & iOS modal)
-  - `expo-notifications`: High-priority exact local push notifications (`USE_EXACT_ALARM`, `WAKE_LOCK`) with `MAX` importance Android channels for reliable alerts during Doze mode
+  - `expo-notifications`: High-priority exact local push notifications (`USE_EXACT_ALARM`, `USE_FULL_SCREEN_INTENT`, `WAKE_LOCK`) with `MAX` importance Android channels for reliable alerts during Doze mode
+  - `expo-av`: System alarm stream audio playback with continuous looping and vibration support
   - `expo-calendar`: Native device calendar event creation and sync
   - `expo-image-picker`: Baby profile avatar selection
 - **Localization**: `i18next` + `react-i18next` + `expo-localization`
@@ -46,7 +48,7 @@ Baby Care helps parents and caregivers log and monitor essential baby routines w
 ```
 ├── App.tsx                        # Main application root & providers
 ├── app.json                       # Expo configuration, plugins & Android permissions
-├── assets/                        # Brand & visual assets (icon, adaptive-icon, splash, favicon)
+├── assets/                        # Brand, visual & audio assets (sounds, icon, splash)
 ├── src/
 │   ├── components/                # Reusable UI components & modals
 │   │   ├── AppointmentModal.tsx   # Medical appointment scheduler
@@ -57,6 +59,7 @@ Baby Care helps parents and caregivers log and monitor essential baby routines w
 │   │   ├── EditReminderModal.tsx  # Interactive reminder editor & alert mode selector
 │   │   ├── FeedingModal.tsx       # Breast & bottle feeding logger & editor
 │   │   ├── FeedingReminderPrompt.tsx # Next feeding alarm scheduler
+│   │   ├── FullScreenAlarmModal.tsx # Full-screen ringing alarm with pulse animation & snooze
 │   │   ├── ProfileHeader.tsx      # Baby info & age calculation banner
 │   │   ├── ProfileModal.tsx       # Baby profile creation & editor
 │   │   ├── QuickActionButton.tsx  # 1-tap quick action buttons
@@ -67,8 +70,8 @@ Baby Care helps parents and caregivers log and monitor essential baby routines w
 │   │   └── repositories/          # Type-safe CRUD repositories
 │   ├── i18n/                      # English & Spanish translations
 │   ├── screens/                   # Main screens (Dashboard, Timeline, Appointments, Settings)
-│   ├── services/                  # Notification & Calendar native services
-│   ├── store/                     # Zustand stores (Theme, Locale, Baby, Feeding, Diaper, Appointment)
+│   ├── services/                  # Notification, Alarm Audio & Calendar native services
+│   ├── store/                     # Zustand stores (Theme, Locale, Baby, Feeding, Diaper, Appointment, AlarmRinging)
 │   ├── theme/                     # Dark & Light color palettes
 │   └── utils/                     # Age calculation, ID generator & date formatters
 └── openspec/                      # Specification & change proposals
