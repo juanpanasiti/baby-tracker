@@ -88,7 +88,7 @@ export default function App() {
     return (
       <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
         <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading Baby Tracker...</Text>
+        <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading Baby Care...</Text>
       </View>
     );
   }

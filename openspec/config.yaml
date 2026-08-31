@@ -7,7 +7,7 @@ context: |
   Target Platform: Primarily Android (mobile-first).
   Storage: Local database (e.g., SQLite) for complete offline-first persistence.
   
-  Application Domain (Baby Tracker):
+  Application Domain (Baby Care):
     - Baby Profile: Store photo/avatar, name, sex, and birth date.
     - Diaper Tracking: Track diaper changes with options for pee, poop, or both (pee and poop).
     - Bath Tracking: Log bath times and relevant notes.

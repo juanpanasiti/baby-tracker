@@ -1,10 +1,10 @@
-# Baby Tracker
+# Baby Care
 
 A modern, local-first mobile application built with React Native and Expo (primarily targeting Android) to effortlessly track baby care activities, feeding times, diaper changes, and medical appointments with local alarms and calendar synchronization.
 
 ## Overview
 
-Baby Tracker helps parents and caregivers log and monitor essential baby routines with zero cloud dependency:
+Baby Care helps parents and caregivers log and monitor essential baby routines with zero cloud dependency:
 - **Baby Profile**: Store and manage baby information including photo avatar, name, sex, and birth date with automated age calculations.
 - **Feedings & Reminders**:
   - **Breastfeeding**: Nursing timer with left, right, or both side tracking and manual duration setting.
@@ -86,7 +86,7 @@ Baby Tracker helps parents and caregivers log and monitor essential baby routine
 ```bash
 # Clone the repository
 git clone <repository-url>
-cd baby-tracker
+cd baby-care
 
 # Install dependencies
 npm install
