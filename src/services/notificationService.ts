@@ -4,6 +4,7 @@ import i18n from '../i18n';
 import { useAlarmRingingStore } from '../store/useAlarmRingingStore';
 
 export const FEEDING_ALARM_CATEGORY = 'feeding-alarm-category';
+export const MEDICATION_ALARM_CATEGORY = 'medication-alarm-category';
 
 // Configure default notification handler for foreground notifications
 Notifications.setNotificationHandler({
@@ -11,13 +12,17 @@ Notifications.setNotificationHandler({
     const data = notification.request.content.data;
     const isAlarm = data?.alertMode === 'alarm';
 
-    // If it's a feeding alarm received in foreground, trigger the continuous alarm loop & UI
-    if (isAlarm && data?.type === 'feeding') {
-      useAlarmRingingStore.getState().triggerAlarm(
-        data.babyId as string | undefined,
-        data.babyName as string | undefined,
-        data.soundName as string | undefined
-      );
+    // If it's an alarm received in foreground, trigger the continuous alarm loop & UI
+    if (isAlarm && (data?.type === 'feeding' || data?.type === 'medication')) {
+      useAlarmRingingStore.getState().triggerAlarm({
+        babyId: data.babyId as string | undefined,
+        babyName: data.babyName as string | undefined,
+        soundName: data.soundName as string | undefined,
+        alarmType: data.type as 'feeding' | 'medication',
+        medicationId: data.medicationId as string | undefined,
+        medicationName: data.medicationName as string | undefined,
+        dosage: data.dosage as string | undefined,
+      });
     }
 
     return {
@@ -47,6 +52,31 @@ export const notificationService = {
           identifier: 'SNOOZE_ALARM',
           buttonTitle: i18n.t('alarms.snooze', { defaultValue: 'Snooze (+15m)' }),
           options: {
+            opensAppToForeground: false,
+          },
+        },
+      ]);
+
+      await Notifications.setNotificationCategoryAsync(MEDICATION_ALARM_CATEGORY, [
+        {
+          identifier: 'TAKE_MEDICATION',
+          buttonTitle: i18n.t('medications.takeDose', { defaultValue: 'Take Dose' }),
+          options: {
+            opensAppToForeground: false,
+          },
+        },
+        {
+          identifier: 'SNOOZE_ALARM',
+          buttonTitle: i18n.t('alarms.snooze', { defaultValue: 'Snooze (+15m)' }),
+          options: {
+            opensAppToForeground: false,
+          },
+        },
+        {
+          identifier: 'SILENCE_ALARM',
+          buttonTitle: i18n.t('alarms.silence', { defaultValue: 'Silence' }),
+          options: {
+            isDestructive: true,
             opensAppToForeground: false,
           },
         },
@@ -109,6 +139,39 @@ export const notificationService = {
         },
         lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
       });
+
+      // 4. Standard Daytime Medication Notifications
+      await Notifications.setNotificationChannelAsync('medication-notifications', {
+        name: 'Medication Notifications (Daytime)',
+        importance: Notifications.AndroidImportance.HIGH,
+        sound: 'default',
+        vibrationPattern: [0, 250, 250, 250],
+        enableLights: true,
+        enableVibrate: true,
+        lightColor: '#10B981',
+        audioAttributes: {
+          usage: Notifications.AndroidAudioUsage.NOTIFICATION,
+          contentType: Notifications.AndroidAudioContentType.SONIFICATION,
+        },
+        lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+      });
+
+      // 5. High-priority Loud Alarm for Medications
+      await Notifications.setNotificationChannelAsync('medication-alarms', {
+        name: 'Medication Alarms (Loud)',
+        importance: Notifications.AndroidImportance.MAX,
+        sound: soundFile,
+        vibrationPattern: [0, 500, 250, 500, 250, 500, 250, 500],
+        enableLights: true,
+        enableVibrate: true,
+        lightColor: '#10B981',
+        audioAttributes: {
+          usage: Notifications.AndroidAudioUsage.ALARM,
+          contentType: Notifications.AndroidAudioContentType.SONIFICATION,
+        },
+        lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+        bypassDnd: true,
+      });
     }
   },
 
@@ -128,11 +191,31 @@ export const notificationService = {
           useAlarmRingingStore.getState().snoozeAlarm(15);
         } else {
           // Caregiver tapped the notification itself -> Trigger full screen alarm UI
-          useAlarmRingingStore.getState().triggerAlarm(
-            data.babyId as string | undefined,
-            data.babyName as string | undefined,
-            data.soundName as string | undefined
-          );
+          useAlarmRingingStore.getState().triggerAlarm({
+            babyId: data.babyId as string | undefined,
+            babyName: data.babyName as string | undefined,
+            soundName: data.soundName as string | undefined,
+            alarmType: 'feeding',
+          });
+        }
+      } else if (data?.type === 'medication') {
+        if (actionIdentifier === 'SILENCE_ALARM') {
+          useAlarmRingingStore.getState().silenceAlarm();
+        } else if (actionIdentifier === 'SNOOZE_ALARM') {
+          useAlarmRingingStore.getState().snoozeAlarm(15);
+        } else if (actionIdentifier === 'TAKE_MEDICATION') {
+          useAlarmRingingStore.getState().takeMedicationDose();
+        } else {
+          // Caregiver tapped the notification itself -> Trigger full screen alarm UI
+          useAlarmRingingStore.getState().triggerAlarm({
+            babyId: data.babyId as string | undefined,
+            babyName: data.babyName as string | undefined,
+            soundName: data.soundName as string | undefined,
+            alarmType: 'medication',
+            medicationId: data.medicationId as string | undefined,
+            medicationName: data.medicationName as string | undefined,
+            dosage: data.dosage as string | undefined,
+          });
         }
       }
     });
@@ -216,7 +299,11 @@ export const notificationService = {
 
     if (isAlarm) {
       // Test the continuous alarm loop in app
-      useAlarmRingingStore.getState().triggerAlarm(undefined, 'Baby', soundName);
+      useAlarmRingingStore.getState().triggerAlarm({
+        babyName: 'Baby',
+        soundName,
+        alarmType: 'feeding',
+      });
     } else {
       await Notifications.scheduleNotificationAsync({
         content: {
@@ -230,6 +317,74 @@ export const notificationService = {
         trigger: null, // trigger immediately
       });
     }
+  },
+
+  async scheduleMedicationAlarm(
+    babyName: string,
+    medicationName: string,
+    targetTime: number,
+    options?: {
+      dosage?: string;
+      alertMode?: 'notification' | 'alarm';
+      soundName?: string;
+      babyId?: string;
+      medicationId?: string;
+    }
+  ): Promise<{ notificationId: string; targetTime: number } | null> {
+    if (targetTime <= Date.now()) {
+      return null;
+    }
+
+    const alertMode = options?.alertMode || 'alarm';
+    const soundName = options?.soundName || 'default';
+
+    await this.setupChannels(soundName);
+    await this.requestPermissions();
+
+    const triggerDate = new Date(targetTime);
+    const channelId = alertMode === 'alarm' ? 'medication-alarms' : 'medication-notifications';
+
+    const isAlarm = alertMode === 'alarm';
+    const title = isAlarm
+      ? i18n.t('alarms.medicationAlarmTitle', { defaultValue: '💊 Medication Alarm' })
+      : i18n.t('alarms.medicationNotificationTitle', { defaultValue: '💊 Time for Medication' });
+    const doseText = options?.dosage ? ` (${options.dosage})` : '';
+    const body = i18n.t('alarms.medicationAlarmBody', {
+      babyName: babyName || 'Baby',
+      medication: medicationName + doseText,
+      defaultValue: `${babyName || 'Baby'}: Time for ${medicationName}${doseText}`,
+    });
+
+    const notificationId = await Notifications.scheduleNotificationAsync({
+      content: {
+        title,
+        body,
+        sound: soundName !== 'default' ? soundName : true,
+        priority: isAlarm
+          ? Notifications.AndroidNotificationPriority.MAX
+          : Notifications.AndroidNotificationPriority.HIGH,
+        vibrate: isAlarm ? [0, 500, 250, 500, 250, 500] : [0, 250, 250, 250],
+        categoryIdentifier: isAlarm ? MEDICATION_ALARM_CATEGORY : undefined,
+        data: {
+          type: 'medication',
+          targetTime,
+          alertMode,
+          soundName,
+          babyName,
+          babyId: options?.babyId,
+          medicationId: options?.medicationId,
+          medicationName,
+          dosage: options?.dosage,
+        },
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DATE,
+        date: triggerDate,
+        channelId,
+      },
+    });
+
+    return { notificationId, targetTime };
   },
 
   async scheduleAppointmentReminder(

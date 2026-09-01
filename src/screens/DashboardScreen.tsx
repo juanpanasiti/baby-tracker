@@ -13,10 +13,12 @@ import { useBabyStore } from '../store/useBabyStore';
 import { useFeedingStore } from '../store/useFeedingStore';
 import { useDiaperStore } from '../store/useDiaperStore';
 import { useAppointmentStore } from '../store/useAppointmentStore';
+import { useMedicationStore } from '../store/useMedicationStore';
 import { ProfileHeader } from '../components/ProfileHeader';
 import { QuickActionButton } from '../components/QuickActionButton';
 import { TimelineItem, type ActivityItem } from '../components/TimelineItem';
 import { formatRelativeTime, formatTimeOnly, formatShortDate } from '../utils/date';
+import { calculateNextMedicationDose } from '../utils/medicationSchedule';
 import {
   Milk,
   Heart,
@@ -27,14 +29,21 @@ import {
   Clock,
   ChevronRight,
   Edit3,
+  Pill,
+  Check,
 } from 'lucide-react-native';
 
 interface DashboardScreenProps {
   onNavigateToTimeline: () => void;
+  onNavigateToMedications: () => void;
   onNavigateToAppointments: () => void;
 }
 
-export function DashboardScreen({ onNavigateToTimeline, onNavigateToAppointments }: DashboardScreenProps) {
+export function DashboardScreen({
+  onNavigateToTimeline,
+  onNavigateToMedications,
+  onNavigateToAppointments,
+}: DashboardScreenProps) {
   const { t, i18n } = useTranslation();
   const colors = useThemeStore((state) => state.colors);
   const baby = useBabyStore((state) => state.baby);
@@ -56,6 +65,17 @@ export function DashboardScreen({ onNavigateToTimeline, onNavigateToAppointments
 
   const { latestDiaper, diapers, openDiaperModal, openEditDiaperModal, deleteDiaper, loadDiapers } = useDiaperStore();
   const { nextAppointment, openAppointmentModal, loadAppointments } = useAppointmentStore();
+  const {
+    medications,
+    medicationLogs,
+    openMedicationModal,
+    openLogDoseModal,
+    logDose,
+    postponeReminder,
+    deleteMedicationLog,
+    loadMedications,
+    loadMedicationLogs,
+  } = useMedicationStore();
 
   const [refreshing, setRefreshing] = React.useState(false);
   const isSpanish = i18n.language === 'es';
@@ -63,17 +83,36 @@ export function DashboardScreen({ onNavigateToTimeline, onNavigateToAppointments
   const onRefresh = async () => {
     if (!baby) return;
     setRefreshing(true);
-    await Promise.all([loadFeedings(baby.id), loadDiapers(baby.id), loadAppointments(baby.id)]);
+    await Promise.all([
+      loadFeedings(baby.id),
+      loadDiapers(baby.id),
+      loadAppointments(baby.id),
+      loadMedications(baby.id),
+      loadMedicationLogs(baby.id),
+    ]);
     setRefreshing(false);
   };
+
+  // Find nearest upcoming medication dose among active medications
+  const activeMedsWithDoses = medications
+    .filter((m) => m.status === 'active')
+    .map((m) => ({
+      medication: m,
+      nextDoseTimestamp: calculateNextMedicationDose(m),
+    }))
+    .filter((item): item is { medication: typeof item.medication; nextDoseTimestamp: number } => item.nextDoseTimestamp !== null)
+    .sort((a, b) => a.nextDoseTimestamp - b.nextDoseTimestamp);
+
+  const nextMedicationDose = activeMedsWithDoses[0] || null;
 
   // Combine top 3 recent activities
   const combinedActivities: ActivityItem[] = [
     ...feedings.slice(0, 5).map((f) => ({ ...f, itemType: 'feeding' as const })),
     ...diapers.slice(0, 5).map((d) => ({ ...d, itemType: 'diaper' as const })),
+    ...medicationLogs.slice(0, 5).map((m) => ({ ...m, itemType: 'medication' as const })),
   ]
     .sort((a, b) => b.timestamp - a.timestamp)
-    .slice(0, 3);
+    .slice(0, 4);
 
   const formatTimerMinSec = (secs: number) => {
     const m = Math.floor(secs / 60);
@@ -174,6 +213,73 @@ export function DashboardScreen({ onNavigateToTimeline, onNavigateToAppointments
         </View>
       )}
 
+      {/* Upcoming Medication Dose Banner */}
+      {nextMedicationDose && (
+        <View
+          style={[
+            styles.medicationBanner,
+            {
+              backgroundColor: colors.card,
+              borderColor: colors.cardBorder,
+            },
+          ]}
+        >
+          <TouchableOpacity
+            style={styles.medicationBannerTop}
+            onPress={onNavigateToMedications}
+            activeOpacity={0.7}
+          >
+            <View style={[styles.medicationIconBg, { backgroundColor: '#10B98120' }]}>
+              <Pill size={20} color="#10B981" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <Text style={[styles.medicationTitle, { color: colors.text }]}>
+                  {nextMedicationDose.medication.name}
+                </Text>
+                {nextMedicationDose.medication.dosage ? (
+                  <Text style={[styles.medicationDosageText, { color: colors.textSecondary }]}>
+                    ({nextMedicationDose.medication.dosage})
+                  </Text>
+                ) : null}
+              </View>
+              <Text style={[styles.medicationSub, { color: colors.textSecondary }]}>
+                ⏰ {formatShortDate(nextMedicationDose.nextDoseTimestamp, i18n.language)} • {formatTimeOnly(nextMedicationDose.nextDoseTimestamp)}
+              </Text>
+            </View>
+            <ChevronRight size={18} color={colors.textMuted} />
+          </TouchableOpacity>
+
+          {/* Quick Actions Footer */}
+          <View style={[styles.medicationActionsRow, { borderTopColor: colors.cardBorder }]}>
+            <TouchableOpacity
+              style={[styles.quickTakeBtn, { backgroundColor: '#10B981' }]}
+              onPress={() => logDose(nextMedicationDose.medication.id)}
+              activeOpacity={0.8}
+            >
+              <Check size={13} color="#FFF" />
+              <Text style={styles.quickTakeBtnText}>{t('medications.takeDose')}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.quickPostponeBtn, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}
+              onPress={() => postponeReminder(nextMedicationDose.medication.id, 15)}
+            >
+              <Clock size={13} color={colors.textSecondary} />
+              <Text style={[styles.quickPostponeText, { color: colors.textSecondary }]}>+15m</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.quickPostponeBtn, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}
+              onPress={() => postponeReminder(nextMedicationDose.medication.id, 30)}
+            >
+              <Clock size={13} color={colors.textSecondary} />
+              <Text style={[styles.quickPostponeText, { color: colors.textSecondary }]}>+30m</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
       {/* Next Medical Appointment Banner */}
       {nextAppointment && nextAppointment.appointmentDate >= Date.now() && (
         <TouchableOpacity
@@ -226,11 +332,11 @@ export function DashboardScreen({ onNavigateToTimeline, onNavigateToAppointments
             onPress={openDiaperModal}
           />
           <QuickActionButton
-            label={t('appointments.addTitle')}
-            subLabel={nextAppointment ? formatShortDate(nextAppointment.appointmentDate, i18n.language) : undefined}
-            icon={<Calendar size={26} color={colors.appointment} />}
-            color={colors.appointment}
-            onPress={() => openAppointmentModal()}
+            label={t('medications.title')}
+            subLabel={nextMedicationDose ? `${nextMedicationDose.medication.name}` : undefined}
+            icon={<Pill size={26} color="#10B981" />}
+            color="#10B981"
+            onPress={openLogDoseModal}
           />
         </View>
       </View>
@@ -259,7 +365,7 @@ export function DashboardScreen({ onNavigateToTimeline, onNavigateToAppointments
             onEdit={() => {
               if (act.itemType === 'feeding') {
                 openEditFeedingModal(act);
-              } else {
+              } else if (act.itemType === 'diaper') {
                 openEditDiaperModal(act);
               }
             }}
@@ -267,8 +373,10 @@ export function DashboardScreen({ onNavigateToTimeline, onNavigateToAppointments
               if (!baby) return;
               if (act.itemType === 'feeding') {
                 deleteFeeding(baby.id, act.id);
-              } else {
+              } else if (act.itemType === 'diaper') {
                 deleteDiaper(baby.id, act.id);
+              } else if (act.itemType === 'medication') {
+                deleteMedicationLog(baby.id, act.id);
               }
             }}
           />
@@ -346,6 +454,59 @@ const styles = StyleSheet.create({
   quickPostponeText: {
     fontSize: 12,
     fontWeight: '600',
+  },
+  medicationBanner: {
+    borderRadius: 16,
+    borderWidth: 1,
+    marginBottom: 14,
+    overflow: 'hidden',
+  },
+  medicationBannerTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 14,
+    gap: 12,
+  },
+  medicationIconBg: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  medicationTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  medicationDosageText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  medicationSub: {
+    fontSize: 13,
+    marginTop: 2,
+  },
+  medicationActionsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderTopWidth: 1,
+  },
+  quickTakeBtn: {
+    flex: 1.4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+  },
+  quickTakeBtnText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '700',
   },
   appointmentBanner: {
     flexDirection: 'row',

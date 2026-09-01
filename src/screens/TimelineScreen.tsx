@@ -11,10 +11,11 @@ import { useThemeStore } from '../store/useThemeStore';
 import { useBabyStore } from '../store/useBabyStore';
 import { useFeedingStore } from '../store/useFeedingStore';
 import { useDiaperStore } from '../store/useDiaperStore';
+import { useMedicationStore } from '../store/useMedicationStore';
 import { TimelineItem, type ActivityItem } from '../components/TimelineItem';
 import { Clock } from 'lucide-react-native';
 
-type FilterType = 'all' | 'feedings' | 'diapers';
+type FilterType = 'all' | 'feedings' | 'diapers' | 'medications';
 
 export function TimelineScreen() {
   const { t } = useTranslation();
@@ -23,17 +24,20 @@ export function TimelineScreen() {
 
   const { feedings, deleteFeeding, openEditFeedingModal } = useFeedingStore();
   const { diapers, deleteDiaper, openEditDiaperModal } = useDiaperStore();
+  const { medicationLogs, deleteMedicationLog } = useMedicationStore();
 
   const [filter, setFilter] = useState<FilterType>('all');
 
   const allActivities: ActivityItem[] = [
     ...feedings.map((f) => ({ ...f, itemType: 'feeding' as const })),
     ...diapers.map((d) => ({ ...d, itemType: 'diaper' as const })),
+    ...medicationLogs.map((m) => ({ ...m, itemType: 'medication' as const })),
   ].sort((a, b) => b.timestamp - a.timestamp);
 
   const filteredActivities = allActivities.filter((item) => {
     if (filter === 'feedings') return item.itemType === 'feeding';
     if (filter === 'diapers') return item.itemType === 'diaper';
+    if (filter === 'medications') return item.itemType === 'medication';
     return true;
   });
 
@@ -41,6 +45,7 @@ export function TimelineScreen() {
     { key: 'all', label: 'All', count: allActivities.length },
     { key: 'feedings', label: t('feeding.title'), count: feedings.length },
     { key: 'diapers', label: t('diaper.title'), count: diapers.length },
+    { key: 'medications', label: t('medications.title'), count: medicationLogs.length },
   ];
 
   return (
@@ -95,7 +100,7 @@ export function TimelineScreen() {
             onEdit={() => {
               if (item.itemType === 'feeding') {
                 openEditFeedingModal(item);
-              } else {
+              } else if (item.itemType === 'diaper') {
                 openEditDiaperModal(item);
               }
             }}
@@ -103,8 +108,10 @@ export function TimelineScreen() {
               if (!baby) return;
               if (item.itemType === 'feeding') {
                 deleteFeeding(baby.id, item.id);
-              } else {
+              } else if (item.itemType === 'diaper') {
                 deleteDiaper(baby.id, item.id);
+              } else if (item.itemType === 'medication') {
+                deleteMedicationLog(baby.id, item.id);
               }
             }}
           />

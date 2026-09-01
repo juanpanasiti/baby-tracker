@@ -2,17 +2,18 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useThemeStore } from '../store/useThemeStore';
-import { type Feeding, type Diaper } from '../db/schema';
+import { type Feeding, type Diaper, type MedicationLog } from '../db/schema';
 import { formatRelativeTime, formatTimeOnly } from '../utils/date';
-import { Trash2, Milk, Heart, AlertTriangle, Pencil } from 'lucide-react-native';
+import { Trash2, Milk, Heart, AlertTriangle, Pencil, Pill } from 'lucide-react-native';
 
 export type ActivityItem =
   | ({ itemType: 'feeding' } & Feeding)
-  | ({ itemType: 'diaper' } & Diaper);
+  | ({ itemType: 'diaper' } & Diaper)
+  | ({ itemType: 'medication' } & MedicationLog);
 
 interface TimelineItemProps {
   item: ActivityItem;
-  onEdit: () => void;
+  onEdit?: () => void;
   onDelete: () => void;
 }
 
@@ -31,6 +32,49 @@ export function TimelineItem({ item, onEdit, onDelete }: TimelineItemProps) {
       ]
     );
   };
+
+  if (item.itemType === 'medication') {
+    return (
+      <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+        <View style={styles.headerRow}>
+          <View style={styles.leftTitleRow}>
+            <View style={[styles.iconCircle, { backgroundColor: '#10B98120' }]}>
+              <Pill size={20} color="#10B981" />
+            </View>
+            <View>
+              <Text style={[styles.title, { color: colors.text }]}>
+                {item.medicationName}
+              </Text>
+              <Text style={[styles.timeText, { color: colors.textMuted }]}>
+                {formatTimeOnly(item.timestamp)} • {formatRelativeTime(item.timestamp, isSpanish)}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.actionsRow}>
+            <TouchableOpacity onPress={confirmDelete} style={styles.actionBtn}>
+              <Trash2 size={16} color={colors.textMuted} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Badges */}
+        {item.dosage ? (
+          <View style={styles.badgesRow}>
+            <View style={[styles.badge, { backgroundColor: colors.surfaceSubtle }]}>
+              <Text style={[styles.badgeText, { color: '#10B981' }]}>
+                💊 {item.dosage}
+              </Text>
+            </View>
+          </View>
+        ) : null}
+
+        {item.notes ? (
+          <Text style={[styles.notesText, { color: colors.textSecondary }]}>"{item.notes}"</Text>
+        ) : null}
+      </View>
+    );
+  }
 
   if (item.itemType === 'feeding') {
     const isBreast = item.type === 'breast';

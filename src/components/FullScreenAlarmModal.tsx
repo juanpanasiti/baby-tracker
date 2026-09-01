@@ -10,7 +10,7 @@ import {
   StatusBar,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { Bell, Clock, Milk, Moon, Volume2, X } from 'lucide-react-native';
+import { Bell, Clock, Milk, Moon, Volume2, X, Pill } from 'lucide-react-native';
 import { useAlarmRingingStore } from '../store/useAlarmRingingStore';
 import { useBabyStore } from '../store/useBabyStore';
 import { useFeedingStore } from '../store/useFeedingStore';
@@ -18,8 +18,17 @@ import { usePreferencesStore, ALARM_SOUNDS } from '../store/usePreferencesStore'
 
 export function FullScreenAlarmModal() {
   const { t } = useTranslation();
-  const { isAlarmRinging, ringingBabyName, ringingSound, silenceAlarm, snoozeAlarm } =
-    useAlarmRingingStore();
+  const {
+    isAlarmRinging,
+    ringingBabyName,
+    ringingSound,
+    alarmType,
+    medicationName,
+    dosage,
+    silenceAlarm,
+    snoozeAlarm,
+    takeMedicationDose,
+  } = useAlarmRingingStore();
   const { baby } = useBabyStore();
   const { openFeedingModal } = useFeedingStore();
 
@@ -78,6 +87,10 @@ export function FullScreenAlarmModal() {
     openFeedingModal('breast');
   };
 
+  const handleTakeMedication = async () => {
+    await takeMedicationDose();
+  };
+
   const handleSilenceOnly = async () => {
     await silenceAlarm();
   };
@@ -95,6 +108,7 @@ export function FullScreenAlarmModal() {
   });
 
   const babyDisplayName = ringingBabyName || baby?.name || t('profile.title');
+  const isMedicationAlarm = alarmType === 'medication';
 
   const rippleScale = rippleAnim.interpolate({
     inputRange: [0, 1],
@@ -117,13 +131,34 @@ export function FullScreenAlarmModal() {
       <StatusBar barStyle="light-content" backgroundColor="#0F172A" />
       <View style={styles.container}>
         {/* Background ambient glow */}
-        <View style={styles.glowCircle} />
+        <View
+          style={[
+            styles.glowCircle,
+            isMedicationAlarm ? { backgroundColor: '#10B98115' } : null,
+          ]}
+        />
 
         {/* Top Bar with Time and Dismiss */}
         <View style={styles.topBar}>
-          <View style={styles.badge}>
-            <Bell size={16} color="#EF4444" />
-            <Text style={styles.badgeText}>{t('alarms.ringingTitle')}</Text>
+          <View
+            style={[
+              styles.badge,
+              isMedicationAlarm
+                ? { backgroundColor: '#10B98120', borderColor: '#10B98140' }
+                : null,
+            ]}
+          >
+            <Bell size={16} color={isMedicationAlarm ? '#34D399' : '#EF4444'} />
+            <Text
+              style={[
+                styles.badgeText,
+                isMedicationAlarm ? { color: '#34D399' } : null,
+              ]}
+            >
+              {isMedicationAlarm
+                ? t('medications.alarmBadge', { defaultValue: 'MEDICATION ALARM' })
+                : t('alarms.ringingTitle')}
+            </Text>
           </View>
           <TouchableOpacity
             style={styles.closeIconButton}
@@ -140,6 +175,7 @@ export function FullScreenAlarmModal() {
             <Animated.View
               style={[
                 styles.rippleRing,
+                isMedicationAlarm ? { backgroundColor: '#10B981' } : null,
                 {
                   transform: [{ scale: rippleScale }],
                   opacity: rippleOpacity,
@@ -149,6 +185,7 @@ export function FullScreenAlarmModal() {
             <Animated.View
               style={[
                 styles.avatarContainer,
+                isMedicationAlarm ? { borderColor: '#10B981', shadowColor: '#10B981' } : null,
                 {
                   transform: [{ scale: pulseAnim }],
                 },
@@ -158,7 +195,11 @@ export function FullScreenAlarmModal() {
                 <Image source={{ uri: baby.photoUri }} style={styles.avatarImage} />
               ) : (
                 <View style={styles.avatarPlaceholder}>
-                  <Milk size={54} color="#6366F1" />
+                  {isMedicationAlarm ? (
+                    <Pill size={54} color="#10B981" />
+                  ) : (
+                    <Milk size={54} color="#6366F1" />
+                  )}
                 </View>
               )}
             </Animated.View>
@@ -167,7 +208,9 @@ export function FullScreenAlarmModal() {
           <Text style={styles.babyName}>{babyDisplayName}</Text>
           <Text style={styles.timeText}>{currentTimeStr}</Text>
           <Text style={styles.subtitle}>
-            {t('alarms.ringingSubtitle', { babyName: babyDisplayName })}
+            {isMedicationAlarm
+              ? `${medicationName || t('medications.title')}${dosage ? ` (${dosage})` : ''}`
+              : t('alarms.ringingSubtitle', { babyName: babyDisplayName })}
           </Text>
 
           <View style={styles.soundBadge}>
@@ -178,15 +221,28 @@ export function FullScreenAlarmModal() {
 
         {/* Bottom Actions Area */}
         <View style={styles.actionsContainer}>
-          {/* Primary Action: Silence & Log Feeding */}
-          <TouchableOpacity
-            style={styles.primaryButton}
-            onPress={handleSilenceAndFeed}
-            activeOpacity={0.85}
-          >
-            <Milk size={22} color="#FFFFFF" />
-            <Text style={styles.primaryButtonText}>{t('alarms.feedBaby')}</Text>
-          </TouchableOpacity>
+          {/* Primary Action */}
+          {isMedicationAlarm ? (
+            <TouchableOpacity
+              style={[styles.primaryButton, { backgroundColor: '#10B981', shadowColor: '#10B981' }]}
+              onPress={handleTakeMedication}
+              activeOpacity={0.85}
+            >
+              <Pill size={22} color="#FFFFFF" />
+              <Text style={styles.primaryButtonText}>
+                {t('medications.takeDose', { defaultValue: 'Mark as Taken' })}
+              </Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={styles.primaryButton}
+              onPress={handleSilenceAndFeed}
+              activeOpacity={0.85}
+            >
+              <Milk size={22} color="#FFFFFF" />
+              <Text style={styles.primaryButtonText}>{t('alarms.feedBaby')}</Text>
+            </TouchableOpacity>
+          )}
 
           {/* Secondary Actions: Snooze +15m and Silence Only */}
           <View style={styles.secondaryRow}>

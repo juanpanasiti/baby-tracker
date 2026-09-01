@@ -14,9 +14,15 @@ Baby Care helps parents and caregivers log and monitor essential baby routines w
   - **Continuous Looping Alarm & Full-Screen Intent**: Feeding alarms ring continuously in a loop at system alarm volume with custom ringtones (`alarm_digital`, `alarm_chime`, `alarm_bells`, `alarm_gentle`) until explicitly silenced or snoozed. On Android, full-screen intent wakes the device and presents the interactive alarm over the lockscreen.
   - **Next Feeding Alarms & Exact Time**: Interactive prompt following each log with intervals (2h, 2.5h, 3h, 3.5h, 4h) or custom exact time picker.
   - **Interactive Dashboard Banner & Quick Postpone**: Postpone active reminders with 1-tap buttons (`+15m`, `+30m`) or tap to open the full **Edit Reminder Modal** to adjust target time, toggle alert mode, or cancel.
+- **Medications & Treatment Reminders**:
+  - **Comprehensive Scheduling**: Support for fixed daily times (e.g. 10:00 & 18:00), hourly intervals (e.g. every 8 hours), and specific days of the week (e.g. Mon/Wed/Fri).
+  - **Dosage & Notes**: Configurable dosage instructions (e.g. "4 drops", "2.5 ml", "1 tablet") and doctor's notes.
+  - **Treatment Lifecycle**: Mark treatments as active, paused, or finished without losing administration history.
+  - **Dual Alert Modes**: Choose between standard notification chimes or insistent loud alarms with full-screen lockscreen intent and continuous looping sound.
+  - **Dedicated Medications Screen & Quick Logging**: 5th tab in bottom navigation with active treatments, upcoming dose countdowns, quick "+ Log Dose" modal, and direct dashboard integration with 1-tap "Mark as Taken" and postpone buttons.
 - **Diaper Changes**: Track diaper events (pee, poop, or both), rash indicators, custom timestamps, and care notes.
 - **Timeline & History Editing**:
-  - Reverse chronological timeline with filter tabs for all events, feedings, or diapers.
+  - Reverse chronological timeline with filter tabs for all events, feedings, diapers, or medications.
   - Full inline editing support: tap the edit pencil icon on any feeding or diaper log to update timestamp, amounts, duration, sides, rash status, or notes.
 - **Medical Appointments & Calendar**:
   - Schedule pediatrician checkups and specialist visits.
@@ -52,7 +58,7 @@ Baby Care helps parents and caregivers log and monitor essential baby routines w
 ├── src/
 │   ├── components/                # Reusable UI components & modals
 │   │   ├── AppointmentModal.tsx   # Medical appointment scheduler
-│   │   ├── BottomNavBar.tsx       # Bottom navigation tabs
+│   │   ├── BottomNavBar.tsx       # Bottom navigation tabs (5 tabs)
 │   │   ├── DatePickerInput.tsx    # Reusable date-only picker with constraints
 │   │   ├── DateTimePickerInput.tsx # Reusable datetime picker with native dialogs & presets
 │   │   ├── DiaperModal.tsx        # Diaper change logger & editor
@@ -60,6 +66,8 @@ Baby Care helps parents and caregivers log and monitor essential baby routines w
 │   │   ├── FeedingModal.tsx       # Breast & bottle feeding logger & editor
 │   │   ├── FeedingReminderPrompt.tsx # Next feeding alarm scheduler
 │   │   ├── FullScreenAlarmModal.tsx # Full-screen ringing alarm with pulse animation & snooze
+│   │   ├── LogDoseModal.tsx       # Quick medication dose logger
+│   │   ├── MedicationModal.tsx    # Medication & treatment schedule creator/editor
 │   │   ├── ProfileHeader.tsx      # Baby info & age calculation banner
 │   │   ├── ProfileModal.tsx       # Baby profile creation & editor
 │   │   ├── QuickActionButton.tsx  # 1-tap quick action buttons
@@ -69,11 +77,11 @@ Baby Care helps parents and caregivers log and monitor essential baby routines w
 │   │   ├── schema.ts              # Drizzle ORM schema & types
 │   │   └── repositories/          # Type-safe CRUD repositories
 │   ├── i18n/                      # English & Spanish translations
-│   ├── screens/                   # Main screens (Dashboard, Timeline, Appointments, Settings)
+│   ├── screens/                   # Main screens (Dashboard, Timeline, Medications, Appointments, Settings)
 │   ├── services/                  # Notification, Alarm Audio & Calendar native services
-│   ├── store/                     # Zustand stores (Theme, Locale, Baby, Feeding, Diaper, Appointment, AlarmRinging)
+│   ├── store/                     # Zustand stores (Theme, Locale, Baby, Feeding, Diaper, Appointment, Medication, AlarmRinging)
 │   ├── theme/                     # Dark & Light color palettes
-│   └── utils/                     # Age calculation, ID generator & date formatters
+│   └── utils/                     # Age calculation, ID generator, schedule & date formatters
 └── openspec/                      # Specification & change proposals
 ```
 

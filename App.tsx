@@ -18,9 +18,11 @@ import { useDiaperStore } from './src/store/useDiaperStore';
 import { useAppointmentStore } from './src/store/useAppointmentStore';
 
 import { usePreferencesStore } from './src/store/usePreferencesStore';
+import { useMedicationStore } from './src/store/useMedicationStore';
 import { notificationService } from './src/services/notificationService';
 import { DashboardScreen } from './src/screens/DashboardScreen';
 import { TimelineScreen } from './src/screens/TimelineScreen';
+import { MedicationsScreen } from './src/screens/MedicationsScreen';
 import { AppointmentsScreen } from './src/screens/AppointmentsScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
 import { BottomNavBar, type TabScreen } from './src/components/BottomNavBar';
@@ -31,6 +33,8 @@ import { FeedingReminderPrompt } from './src/components/FeedingReminderPrompt';
 import { EditReminderModal } from './src/components/EditReminderModal';
 import { DiaperModal } from './src/components/DiaperModal';
 import { AppointmentModal } from './src/components/AppointmentModal';
+import { MedicationModal } from './src/components/MedicationModal';
+import { LogDoseModal } from './src/components/LogDoseModal';
 import { FullScreenAlarmModal } from './src/components/FullScreenAlarmModal';
 
 export default function App() {
@@ -43,6 +47,7 @@ export default function App() {
   const { loadFeedings, cleanupStaleReminders } = useFeedingStore();
   const { loadDiaperStore } = useDiaperStore.getState() ? { loadDiaperStore: useDiaperStore.getState().loadDiapers } : { loadDiaperStore: () => Promise.resolve() };
   const { loadAppointments } = useAppointmentStore();
+  const { loadMedications, loadMedicationLogs } = useMedicationStore();
 
   useEffect(() => {
     async function prepare() {
@@ -75,6 +80,8 @@ export default function App() {
       loadFeedings(baby.id);
       loadDiaperStore(baby.id);
       loadAppointments(baby.id);
+      loadMedications(baby.id);
+      loadMedicationLogs(baby.id);
     }
   }, [baby]);
 
@@ -112,10 +119,12 @@ export default function App() {
         {activeTab === 'dashboard' && (
           <DashboardScreen
             onNavigateToTimeline={() => setActiveTab('timeline')}
+            onNavigateToMedications={() => setActiveTab('medications')}
             onNavigateToAppointments={() => setActiveTab('appointments')}
           />
         )}
         {activeTab === 'timeline' && <TimelineScreen />}
+        {activeTab === 'medications' && <MedicationsScreen />}
         {activeTab === 'appointments' && <AppointmentsScreen />}
         {activeTab === 'settings' && <SettingsScreen />}
       </View>
@@ -130,6 +139,8 @@ export default function App() {
       <EditReminderModal />
       <DiaperModal />
       <AppointmentModal />
+      <MedicationModal />
+      <LogDoseModal />
       <FullScreenAlarmModal />
     </SafeAreaView>
   );

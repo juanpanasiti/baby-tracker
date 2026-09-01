@@ -91,6 +91,38 @@ export async function initDatabase(): Promise<void> {
       created_at INTEGER NOT NULL,
       FOREIGN KEY (baby_id) REFERENCES babies (id) ON DELETE CASCADE
     );
+
+    CREATE TABLE IF NOT EXISTS medications (
+      id TEXT PRIMARY KEY NOT NULL,
+      baby_id TEXT NOT NULL,
+      name TEXT NOT NULL,
+      dosage TEXT,
+      schedule_type TEXT NOT NULL,
+      fixed_times_json TEXT,
+      interval_hours INTEGER,
+      interval_start_time INTEGER,
+      selected_days_json TEXT,
+      end_date INTEGER,
+      alert_mode TEXT NOT NULL DEFAULT 'alarm',
+      sound_name TEXT,
+      notes TEXT,
+      status TEXT NOT NULL DEFAULT 'active',
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL,
+      FOREIGN KEY (baby_id) REFERENCES babies (id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS medication_logs (
+      id TEXT PRIMARY KEY NOT NULL,
+      baby_id TEXT NOT NULL,
+      medication_id TEXT NOT NULL,
+      medication_name TEXT NOT NULL,
+      dosage TEXT,
+      notes TEXT,
+      timestamp INTEGER NOT NULL,
+      FOREIGN KEY (baby_id) REFERENCES babies (id) ON DELETE CASCADE,
+      FOREIGN KEY (medication_id) REFERENCES medications (id) ON DELETE CASCADE
+    );
   `);
 
   // Safe migrations for added columns in reminders

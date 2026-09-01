@@ -2,9 +2,9 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useThemeStore } from '../store/useThemeStore';
-import { Home, Clock, Calendar, Settings } from 'lucide-react-native';
+import { Home, Clock, Calendar, Settings, Pill } from 'lucide-react-native';
 
-export type TabScreen = 'dashboard' | 'timeline' | 'appointments' | 'settings';
+export type TabScreen = 'dashboard' | 'timeline' | 'medications' | 'appointments' | 'settings';
 
 interface BottomNavBarProps {
   activeTab: TabScreen;
@@ -33,6 +33,16 @@ export function BottomNavBar({ activeTab, onTabChange }: BottomNavBarProps) {
         <Clock
           size={22}
           color={activeTab === 'timeline' ? colors.primary : colors.textMuted}
+        />
+      ),
+    },
+    {
+      key: 'medications',
+      label: t('nav.medications'),
+      icon: (
+        <Pill
+          size={22}
+          color={activeTab === 'medications' ? colors.primary : colors.textMuted}
         />
       ),
     },
