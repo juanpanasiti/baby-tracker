@@ -648,7 +648,8 @@ export const notificationService = {
     title: string,
     doctorName: string,
     appointmentTime: number,
-    minutesBefore: number
+    minutesBefore: number,
+    category: 'medical' | 'vaccine' | 'administrative' | 'other' = 'medical'
   ): Promise<string | null> {
     await this.setupChannels();
     await this.requestPermissions();
@@ -659,13 +660,26 @@ export const notificationService = {
     }
 
     const dateStr = new Date(appointmentTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const notifTitle = i18n.t('alarms.appointmentAlarmTitle', { title });
-    const notifBody = i18n.t('alarms.appointmentAlarmBody', {
-      doctor: doctorName || 'Pediatrician',
-      time: dateStr,
+    const notifTitle = i18n.t(`alarms.appointmentAlarmTitle_${category}`, {
+      title,
+      defaultValue: i18n.t('alarms.appointmentAlarmTitle', { title }),
     });
 
-    const notificationId = `appointment-${Date.now()}`;
+    let notifBody = '';
+    if (category === 'medical') {
+      notifBody = i18n.t('alarms.appointmentAlarmBody_medical', {
+        doctor: doctorName || 'Doctor',
+        time: dateStr,
+        defaultValue: i18n.t('alarms.appointmentAlarmBody', { doctor: doctorName || 'Doctor', time: dateStr }),
+      });
+    } else {
+      notifBody = i18n.t(`alarms.appointmentAlarmBody_${category}`, {
+        time: dateStr,
+        defaultValue: i18n.t('alarms.appointmentAlarmBody_other', { time: dateStr }),
+      });
+    }
+
+    const notificationId = `appointment-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
     try {
       const trigger: TimestampTrigger = {
@@ -678,6 +692,11 @@ export const notificationService = {
           id: notificationId,
           title: notifTitle,
           body: notifBody,
+          data: {
+            type: 'appointment',
+            appointmentTime: String(appointmentTime),
+            category,
+          },
           android: {
             channelId: 'appointment-reminders',
             importance: AndroidImportance.HIGH,
@@ -696,7 +715,7 @@ export const notificationService = {
           sound: true,
           priority: Notifications.AndroidNotificationPriority.MAX,
           vibrate: [0, 250, 250, 250],
-          data: { type: 'appointment', appointmentTime },
+          data: { type: 'appointment', appointmentTime, category },
         },
         trigger: {
           type: Notifications.SchedulableTriggerInputTypes.DATE,

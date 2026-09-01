@@ -1,8 +1,4 @@
-## Purpose
-
-Provides scheduling and management for appointments (medical checkups, vaccinations, administrative procedures, and general commitments) with reminder alerts and device calendar synchronization.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Schedule Medical Appointment
 The system SHALL allow users to create and manage appointments under distinct categories: medical, vaccine, administrative, and other. For all categories, appointments contain title, date and time selected via native date and time picker dialogs, location, preparation/procedural notes, calendar sync preference, and advance notification preferences. When the category is `medical`, the appointment additionally supports doctor/specialist name and medical specialty.
@@ -19,12 +15,7 @@ The system SHALL allow users to create and manage appointments under distinct ca
 - **WHEN** the user selects a non-medical category (such as "Vaccine", "Administrative", or "Other"), enters a title, selects date/time, enters optional location and notes, and saves
 - **THEN** the system SHALL hide medical-specific fields, validate universal required fields, and persist the record with the selected category
 
-### Requirement: Native Calendar Export
-The system SHALL support exporting/syncing scheduled appointments to the native device calendar using device calendar permissions.
-
-#### Scenario: User enables device calendar sync
-- **WHEN** the user taps "Add to Device Calendar" on an appointment
-- **THEN** the system SHALL request calendar permission (if not granted), create a native calendar event, and store the returned native event ID
+## ADDED Requirements
 
 ### Requirement: Categorized Appointment Filtering and Identification
 The system SHALL visually differentiate appointments by category using distinct icons, badges, and colors, and allow filtering or tabbed viewing of scheduled commitments.

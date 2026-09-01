@@ -19,6 +19,7 @@ import { QuickActionButton } from '../components/QuickActionButton';
 import { TimelineItem, type ActivityItem } from '../components/TimelineItem';
 import { formatRelativeTime, formatTimeOnly, formatShortDate } from '../utils/date';
 import { calculateNextMedicationDose } from '../utils/medicationSchedule';
+import { type AppointmentCategory } from '../db/schema';
 import {
   Milk,
   Heart,
@@ -31,7 +32,20 @@ import {
   Edit3,
   Pill,
   Check,
+  Stethoscope,
+  Syringe,
+  FileText,
 } from 'lucide-react-native';
+
+const APPOINTMENT_CATEGORY_CONFIG: Record<
+  AppointmentCategory,
+  { icon: typeof Stethoscope; color: string }
+> = {
+  medical: { icon: Stethoscope, color: '#EC4899' },
+  vaccine: { icon: Syringe, color: '#06B6D4' },
+  administrative: { icon: FileText, color: '#6366F1' },
+  other: { icon: Calendar, color: '#8B5CF6' },
+};
 
 interface DashboardScreenProps {
   onNavigateToTimeline: () => void;
@@ -280,28 +294,41 @@ export function DashboardScreen({
         </View>
       )}
 
-      {/* Next Medical Appointment Banner */}
-      {nextAppointment && nextAppointment.appointmentDate >= Date.now() && (
-        <TouchableOpacity
-          style={[styles.appointmentBanner, { backgroundColor: colors.appointment + '15', borderColor: colors.appointment }]}
-          onPress={onNavigateToAppointments}
-          activeOpacity={0.8}
-        >
-          <View style={[styles.appointmentIconBg, { backgroundColor: colors.appointment }]}>
-            <Calendar size={18} color="#FFF" />
-          </View>
-          <View style={styles.appointmentInfo}>
-            <Text style={[styles.appointmentTitle, { color: colors.text }]} numberOfLines={1}>
-              {nextAppointment.title}
-            </Text>
-            <Text style={[styles.appointmentSub, { color: colors.textSecondary }]}>
-              📅 {formatShortDate(nextAppointment.appointmentDate, i18n.language)} • {formatTimeOnly(nextAppointment.appointmentDate)}
-              {nextAppointment.doctorName ? ` (${nextAppointment.doctorName})` : ''}
-            </Text>
-          </View>
-          <ChevronRight size={18} color={colors.textMuted} />
-        </TouchableOpacity>
-      )}
+      {/* Next Appointment Banner */}
+      {nextAppointment && nextAppointment.appointmentDate >= Date.now() && (() => {
+        const catKey = (nextAppointment.category as AppointmentCategory) || 'medical';
+        const catConfig = APPOINTMENT_CATEGORY_CONFIG[catKey] || APPOINTMENT_CATEGORY_CONFIG.medical;
+        const CatIcon = catConfig.icon;
+
+        return (
+          <TouchableOpacity
+            style={[styles.appointmentBanner, { backgroundColor: catConfig.color + '15', borderColor: catConfig.color }]}
+            onPress={onNavigateToAppointments}
+            activeOpacity={0.8}
+          >
+            <View style={[styles.appointmentIconBg, { backgroundColor: catConfig.color }]}>
+              <CatIcon size={18} color="#FFF" />
+            </View>
+            <View style={styles.appointmentInfo}>
+              <View style={styles.appointmentHeaderRow}>
+                <Text style={[styles.appointmentTitle, { color: colors.text }]} numberOfLines={1}>
+                  {nextAppointment.title}
+                </Text>
+                <View style={[styles.categoryTag, { backgroundColor: catConfig.color + '25' }]}>
+                  <Text style={[styles.categoryTagText, { color: catConfig.color }]}>
+                    {t(`appointments.categories.${catKey}`)}
+                  </Text>
+                </View>
+              </View>
+              <Text style={[styles.appointmentSub, { color: colors.textSecondary }]}>
+                📅 {formatShortDate(nextAppointment.appointmentDate, i18n.language)} • {formatTimeOnly(nextAppointment.appointmentDate)}
+                {nextAppointment.doctorName ? ` (${nextAppointment.doctorName})` : ''}
+              </Text>
+            </View>
+            <ChevronRight size={18} color={colors.textMuted} />
+          </TouchableOpacity>
+        );
+      })()}
 
       {/* Quick Action Grid */}
       <Text style={[styles.sectionTitle, { color: colors.text }]}>⚡ 1-Tap Quick Log</Text>
@@ -527,8 +554,24 @@ const styles = StyleSheet.create({
   appointmentInfo: {
     flex: 1,
   },
+  appointmentHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
   appointmentTitle: {
     fontSize: 15,
+    fontWeight: '700',
+    flex: 1,
+  },
+  categoryTag: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  categoryTagText: {
+    fontSize: 11,
     fontWeight: '700',
   },
   appointmentSub: {

@@ -222,6 +222,7 @@ describe('Appointment Store and Custom Timestamps', () => {
     const targetTimestamp = Date.now() + 48 * 60 * 60 * 1000;
     const created = await useAppointmentStore.getState().createAppointment('baby-1', {
       title: '6 Month Checkup',
+      category: 'medical',
       doctorName: 'Dr. Smith',
       specialty: 'Pediatrics',
       appointmentDate: targetTimestamp,
@@ -233,7 +234,44 @@ describe('Appointment Store and Custom Timestamps', () => {
     });
 
     expect(created.appointmentDate).toBe(targetTimestamp);
+    expect(created.category).toBe('medical');
     expect(useAppointmentStore.getState().isAppointmentModalOpen).toBe(false);
+  });
+
+  it('creates a vaccine appointment omitting doctor fields', async () => {
+    const targetTimestamp = Date.now() + 24 * 60 * 60 * 1000;
+    const created = await useAppointmentStore.getState().createAppointment('baby-1', {
+      title: 'Rotavirus & Hexavalent Vaccine',
+      category: 'vaccine',
+      doctorName: 'Ignored Doctor',
+      specialty: 'Ignored Specialty',
+      appointmentDate: targetTimestamp,
+      location: 'Vaccination Clinic',
+      notes: 'Bring vaccination card',
+      syncToCalendar: false,
+      remind24h: true,
+      remind2h: true,
+    });
+
+    expect(created.category).toBe('vaccine');
+    expect(created.doctorName).toBeNull();
+    expect(created.specialty).toBeNull();
+  });
+
+  it('creates an administrative appointment', async () => {
+    const targetTimestamp = Date.now() + 72 * 60 * 60 * 1000;
+    const created = await useAppointmentStore.getState().createAppointment('baby-1', {
+      title: 'ID Renewal',
+      category: 'administrative',
+      appointmentDate: targetTimestamp,
+      location: 'Civil Registry',
+      notes: 'Bring birth certificate',
+      syncToCalendar: true,
+      remind24h: true,
+      remind2h: true,
+    });
+
+    expect(created.category).toBe('administrative');
   });
 });
 

@@ -24,10 +24,12 @@ Baby Care helps parents and caregivers log and monitor essential baby routines w
 - **Timeline & History Editing**:
   - Reverse chronological timeline with filter tabs for all events, feedings, diapers, or medications.
   - Full inline editing support: tap the edit pencil icon on any feeding or diaper log to update timestamp, amounts, duration, sides, rash status, or notes.
-- **Medical Appointments & Calendar**:
-  - Schedule pediatrician checkups and specialist visits.
-  - Sync events directly to the native device calendar (`expo-calendar`).
-  - Configure automated advance notifications (24 hours and 2 hours prior).
+- **Appointments & Calendar Management**:
+  - Multi-category appointment scheduling: **Medical** (pediatrician/specialist checkups with doctor name and specialty), **Vaccines** (scheduled vaccination doses), **Administrative** (DNI, passport, insurance paperwork), and **Other** (nursery, stimulation sessions).
+  - Dynamic form inputs: displays relevant doctor/specialty fields for medical visits while keeping clean, minimal inputs for vaccines and administrative tasks.
+  - Category-specific visual accents and badge indicators across appointments lists and dashboard upcoming banners.
+  - Direct synchronization with the native device calendar (`expo-calendar`).
+  - Automated advance reminders and notifications (24 hours and 2 hours prior) with category-tailored messaging.
 - **Theming, Localization & Preferences**:
   - **Themes**: Dark Mode (default) and Light Mode, persisted locally.
   - **Localization**: English (default) and Spanish, persisted locally.

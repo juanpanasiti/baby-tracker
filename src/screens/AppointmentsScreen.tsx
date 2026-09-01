@@ -11,7 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { useThemeStore } from '../store/useThemeStore';
 import { useBabyStore } from '../store/useBabyStore';
 import { useAppointmentStore } from '../store/useAppointmentStore';
-import { type Appointment } from '../db/schema';
+import { type Appointment, type AppointmentCategory } from '../db/schema';
 import { formatShortDate, formatTimeOnly } from '../utils/date';
 import {
   Calendar as CalendarIcon,
@@ -21,7 +21,19 @@ import {
   FileText,
   User,
   CheckCircle,
+  Stethoscope,
+  Syringe,
 } from 'lucide-react-native';
+
+const CATEGORY_CONFIG: Record<
+  AppointmentCategory,
+  { icon: typeof Stethoscope; color: string }
+> = {
+  medical: { icon: Stethoscope, color: '#EC4899' },
+  vaccine: { icon: Syringe, color: '#06B6D4' },
+  administrative: { icon: FileText, color: '#6366F1' },
+  other: { icon: CalendarIcon, color: '#8B5CF6' },
+};
 
 export function AppointmentsScreen() {
   const { t, i18n } = useTranslation();
@@ -101,7 +113,7 @@ export function AppointmentsScreen() {
           onPress={() => openAppointmentModal()}
         >
           <Plus size={18} color="#FFF" />
-          <Text style={styles.addButtonText}>Add</Text>
+          <Text style={styles.addButtonText}>{t('common.add') || 'Add'}</Text>
         </TouchableOpacity>
       </View>
 
@@ -117,85 +129,99 @@ export function AppointmentsScreen() {
             <Text style={[styles.emptyText, { color: colors.textMuted }]}>{t('common.emptyState')}</Text>
           </View>
         }
-        renderItem={({ item }) => (
-          <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
-            <View style={styles.cardHeader}>
-              <View style={styles.headerLeft}>
-                <View style={[styles.dateBadge, { backgroundColor: colors.appointment + '20' }]}>
-                  <Text style={[styles.dateBadgeDay, { color: colors.appointment }]}>
-                    {new Date(item.appointmentDate).getDate()}
-                  </Text>
-                  <Text style={[styles.dateBadgeMonth, { color: colors.appointment }]}>
-                    {formatShortDate(item.appointmentDate, i18n.language).split(' ')[0]}
-                  </Text>
+        renderItem={({ item }) => {
+          const categoryKey = (item.category as AppointmentCategory) || 'medical';
+          const catConfig = CATEGORY_CONFIG[categoryKey] || CATEGORY_CONFIG.medical;
+          const CategoryIconComponent = catConfig.icon;
+
+          return (
+            <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+              <View style={styles.cardHeader}>
+                <View style={styles.headerLeft}>
+                  <View style={[styles.dateBadge, { backgroundColor: catConfig.color + '20' }]}>
+                    <Text style={[styles.dateBadgeDay, { color: catConfig.color }]}>
+                      {new Date(item.appointmentDate).getDate()}
+                    </Text>
+                    <Text style={[styles.dateBadgeMonth, { color: catConfig.color }]}>
+                      {formatShortDate(item.appointmentDate, i18n.language).split(' ')[0]}
+                    </Text>
+                  </View>
+
+                  <View style={styles.titleInfo}>
+                    <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>
+                      {item.title}
+                    </Text>
+                    <Text style={[styles.timeText, { color: colors.primaryLight }]}>
+                      ⏰ {formatTimeOnly(item.appointmentDate)}
+                    </Text>
+                  </View>
                 </View>
 
-                <View style={styles.titleInfo}>
-                  <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>
-                    {item.title}
-                  </Text>
-                  <Text style={[styles.timeText, { color: colors.primaryLight }]}>
-                    ⏰ {formatTimeOnly(item.appointmentDate)}
-                  </Text>
-                </View>
+                <TouchableOpacity onPress={() => confirmDelete(item)} style={styles.deleteBtn}>
+                  <Trash2 size={16} color={colors.textMuted} />
+                </TouchableOpacity>
               </View>
 
-              <TouchableOpacity onPress={() => confirmDelete(item)} style={styles.deleteBtn}>
-                <Trash2 size={16} color={colors.textMuted} />
-              </TouchableOpacity>
-            </View>
-
-            {/* Doctor and Specialty */}
-            {item.doctorName || item.specialty ? (
-              <View style={styles.detailRow}>
-                <User size={15} color={colors.textMuted} />
-                <Text style={[styles.detailText, { color: colors.textSecondary }]}>
-                  {item.doctorName} {item.specialty ? `• ${item.specialty}` : ''}
-                </Text>
-              </View>
-            ) : null}
-
-            {/* Location */}
-            {item.location ? (
-              <View style={styles.detailRow}>
-                <MapPin size={15} color={colors.textMuted} />
-                <Text style={[styles.detailText, { color: colors.textSecondary }]}>
-                  {item.location}
-                </Text>
-              </View>
-            ) : null}
-
-            {/* Notes */}
-            {item.notes ? (
-              <View style={styles.detailRow}>
-                <FileText size={15} color={colors.textMuted} />
-                <Text style={[styles.detailText, { color: colors.textSecondary }]}>
-                  "{item.notes}"
-                </Text>
-              </View>
-            ) : null}
-
-            {/* Badges (Calendar sync & Reminders) */}
-            <View style={styles.badgesRow}>
-              {item.calendarEventId ? (
-                <View style={[styles.badge, { backgroundColor: colors.success + '15' }]}>
-                  <CheckCircle size={12} color={colors.success} />
-                  <Text style={[styles.badgeText, { color: colors.success }]}>
-                    {t('appointments.calendarAdded')}
+              {/* Doctor and Specialty (if medical or present) */}
+              {item.doctorName || item.specialty ? (
+                <View style={styles.detailRow}>
+                  <User size={15} color={colors.textMuted} />
+                  <Text style={[styles.detailText, { color: colors.textSecondary }]}>
+                    {item.doctorName} {item.specialty ? `• ${item.specialty}` : ''}
                   </Text>
                 </View>
               ) : null}
 
-              {item.reminderNotificationId ? (
-                <View style={[styles.badge, { backgroundColor: colors.appointment + '15' }]}>
-                  <Text style={[styles.badgeText, { color: colors.appointment }]}>
-                    🔔 Reminder active
+              {/* Location */}
+              {item.location ? (
+                <View style={styles.detailRow}>
+                  <MapPin size={15} color={colors.textMuted} />
+                  <Text style={[styles.detailText, { color: colors.textSecondary }]}>
+                    {item.location}
                   </Text>
                 </View>
               ) : null}
+
+              {/* Notes */}
+              {item.notes ? (
+                <View style={styles.detailRow}>
+                  <FileText size={15} color={colors.textMuted} />
+                  <Text style={[styles.detailText, { color: colors.textSecondary }]}>
+                    "{item.notes}"
+                  </Text>
+                </View>
+              ) : null}
+
+              {/* Badges (Category, Calendar sync & Reminders) */}
+              <View style={styles.badgesRow}>
+                {/* Category Badge */}
+                <View style={[styles.badge, { backgroundColor: catConfig.color + '20' }]}>
+                  <CategoryIconComponent size={12} color={catConfig.color} />
+                  <Text style={[styles.badgeText, { color: catConfig.color }]}>
+                    {t(`appointments.categories.${categoryKey}`)}
+                  </Text>
+                </View>
+
+                {item.calendarEventId ? (
+                  <View style={[styles.badge, { backgroundColor: colors.success + '15' }]}>
+                    <CheckCircle size={12} color={colors.success} />
+                    <Text style={[styles.badgeText, { color: colors.success }]}>
+                      {t('appointments.calendarAdded')}
+                    </Text>
+                  </View>
+                ) : null}
+
+                {item.reminderNotificationId ? (
+                  <View style={[styles.badge, { backgroundColor: catConfig.color + '15' }]}>
+                    <Text style={[styles.badgeText, { color: catConfig.color }]}>
+                      🔔 Reminder active
+                    </Text>
+                  </View>
+                ) : null}
+              </View>
             </View>
-          </View>
-        )}
+          );
+        }}
       />
     </View>
   );

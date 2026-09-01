@@ -45,6 +45,7 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
   createAppointment: async (babyId: string, params) => {
     let calendarEventId: string | null = null;
     let reminderNotificationId: string | null = null;
+    const category = params.category || 'medical';
 
     // Optional Native Calendar Sync
     if (params.syncToCalendar) {
@@ -61,18 +62,20 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
     if (params.remind24h) {
       reminderNotificationId = await notificationService.scheduleAppointmentReminder(
         params.title,
-        params.doctorName || 'Pediatrician',
+        params.doctorName || '',
         params.appointmentDate,
-        24 * 60 // 24 hours
+        24 * 60, // 24 hours
+        category
       );
     }
 
     if (params.remind2h) {
       const notif2h = await notificationService.scheduleAppointmentReminder(
         params.title,
-        params.doctorName || 'Pediatrician',
+        params.doctorName || '',
         params.appointmentDate,
-        2 * 60 // 2 hours
+        2 * 60, // 2 hours
+        category
       );
       if (!reminderNotificationId) reminderNotificationId = notif2h;
     }
@@ -80,8 +83,9 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
     const created = await appointmentRepository.createAppointment({
       babyId,
       title: params.title,
-      doctorName: params.doctorName,
-      specialty: params.specialty,
+      category,
+      doctorName: category === 'medical' ? (params.doctorName || null) : null,
+      specialty: category === 'medical' ? (params.specialty || null) : null,
       appointmentDate: params.appointmentDate,
       location: params.location,
       notes: params.notes,

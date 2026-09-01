@@ -15,8 +15,25 @@ import { useTranslation } from 'react-i18next';
 import { useThemeStore } from '../store/useThemeStore';
 import { useAppointmentStore } from '../store/useAppointmentStore';
 import { useBabyStore } from '../store/useBabyStore';
-import { X, Check, Calendar as CalendarIcon, Clock, Bell } from 'lucide-react-native';
+import { type AppointmentCategory } from '../db/schema';
+import {
+  X,
+  Check,
+  Calendar as CalendarIcon,
+  Clock,
+  Bell,
+  Stethoscope,
+  Syringe,
+  FileText,
+} from 'lucide-react-native';
 import { DateTimePickerInput } from './DateTimePickerInput';
+
+const CATEGORIES: { id: AppointmentCategory; icon: typeof Stethoscope; color: string }[] = [
+  { id: 'medical', icon: Stethoscope, color: '#EC4899' },
+  { id: 'vaccine', icon: Syringe, color: '#06B6D4' },
+  { id: 'administrative', icon: FileText, color: '#6366F1' },
+  { id: 'other', icon: CalendarIcon, color: '#8B5CF6' },
+];
 
 export function AppointmentModal() {
   const { t } = useTranslation();
@@ -24,6 +41,7 @@ export function AppointmentModal() {
   const baby = useBabyStore((state) => state.baby);
   const { isAppointmentModalOpen, closeAppointmentModal, createAppointment } = useAppointmentStore();
 
+  const [category, setCategory] = useState<AppointmentCategory>('medical');
   const [title, setTitle] = useState('');
   const [doctorName, setDoctorName] = useState('');
   const [specialty, setSpecialty] = useState('');
@@ -57,8 +75,9 @@ export function AppointmentModal() {
     try {
       await createAppointment(baby.id, {
         title: title.trim(),
-        doctorName: doctorName.trim() || null,
-        specialty: specialty.trim() || null,
+        category,
+        doctorName: category === 'medical' ? (doctorName.trim() || null) : null,
+        specialty: category === 'medical' ? (specialty.trim() || null) : null,
         appointmentDate,
         location: location.trim() || null,
         notes: notes.trim() || null,
@@ -68,6 +87,7 @@ export function AppointmentModal() {
       });
 
       // Reset
+      setCategory('medical');
       setTitle('');
       setDoctorName('');
       setSpecialty('');
@@ -79,6 +99,8 @@ export function AppointmentModal() {
       setErrorMsg(e instanceof Error ? e.message : 'Error saving appointment');
     }
   };
+
+  const activeCategoryConfig = CATEGORIES.find((c) => c.id === category) || CATEGORIES[0];
 
   return (
     <Modal visible={isAppointmentModalOpen} transparent animationType="slide" onRequestClose={closeAppointmentModal}>
@@ -102,6 +124,42 @@ export function AppointmentModal() {
               </View>
             ) : null}
 
+            {/* Category Selector */}
+            <View style={styles.inputGroup}>
+              <Text style={[styles.label, { color: colors.textSecondary }]}>
+                {t('appointments.category')}
+              </Text>
+              <View style={styles.categoryGrid}>
+                {CATEGORIES.map((cat) => {
+                  const isSelected = category === cat.id;
+                  const Icon = cat.icon;
+                  return (
+                    <TouchableOpacity
+                      key={cat.id}
+                      style={[
+                        styles.categoryPill,
+                        {
+                          backgroundColor: isSelected ? cat.color : colors.surfaceSubtle,
+                          borderColor: isSelected ? cat.color : colors.cardBorder,
+                        },
+                      ]}
+                      onPress={() => setCategory(cat.id)}
+                    >
+                      <Icon size={16} color={isSelected ? '#FFF' : colors.textSecondary} />
+                      <Text
+                        style={[
+                          styles.categoryText,
+                          { color: isSelected ? '#FFF' : colors.textSecondary, fontWeight: isSelected ? '700' : '500' },
+                        ]}
+                      >
+                        {t(`appointments.categories.${cat.id}`)}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+
             {/* Title / Reason */}
             <View style={styles.inputGroup}>
               <Text style={[styles.label, { color: colors.textSecondary }]}>
@@ -116,55 +174,59 @@ export function AppointmentModal() {
                     borderColor: colors.cardBorder,
                   },
                 ]}
-                placeholder={t('appointments.titlePlaceholder')}
+                placeholder={t(`appointments.titlePlaceholder_${category}`, {
+                  defaultValue: t('appointments.titlePlaceholder'),
+                })}
                 placeholderTextColor={colors.textMuted}
                 value={title}
                 onChangeText={setTitle}
               />
             </View>
 
-            {/* Doctor & Specialty Row */}
-            <View style={styles.row}>
-              <View style={[styles.inputGroup, { flex: 1 }]}>
-                <Text style={[styles.label, { color: colors.textSecondary }]}>
-                  {t('appointments.doctorName')}
-                </Text>
-                <TextInput
-                  style={[
-                    styles.textInput,
-                    {
-                      backgroundColor: colors.surfaceSubtle,
-                      color: colors.text,
-                      borderColor: colors.cardBorder,
-                    },
-                  ]}
-                  placeholder={t('appointments.doctorPlaceholder')}
-                  placeholderTextColor={colors.textMuted}
-                  value={doctorName}
-                  onChangeText={setDoctorName}
-                />
-              </View>
+            {/* Doctor & Specialty Row (Only visible for Medical) */}
+            {category === 'medical' ? (
+              <View style={styles.row}>
+                <View style={[styles.inputGroup, { flex: 1 }]}>
+                  <Text style={[styles.label, { color: colors.textSecondary }]}>
+                    {t('appointments.doctorName')}
+                  </Text>
+                  <TextInput
+                    style={[
+                      styles.textInput,
+                      {
+                        backgroundColor: colors.surfaceSubtle,
+                        color: colors.text,
+                        borderColor: colors.cardBorder,
+                      },
+                    ]}
+                    placeholder={t('appointments.doctorPlaceholder')}
+                    placeholderTextColor={colors.textMuted}
+                    value={doctorName}
+                    onChangeText={setDoctorName}
+                  />
+                </View>
 
-              <View style={[styles.inputGroup, { flex: 1 }]}>
-                <Text style={[styles.label, { color: colors.textSecondary }]}>
-                  {t('appointments.specialty')}
-                </Text>
-                <TextInput
-                  style={[
-                    styles.textInput,
-                    {
-                      backgroundColor: colors.surfaceSubtle,
-                      color: colors.text,
-                      borderColor: colors.cardBorder,
-                    },
-                  ]}
-                  placeholder={t('appointments.specialtyPlaceholder')}
-                  placeholderTextColor={colors.textMuted}
-                  value={specialty}
-                  onChangeText={setSpecialty}
-                />
+                <View style={[styles.inputGroup, { flex: 1 }]}>
+                  <Text style={[styles.label, { color: colors.textSecondary }]}>
+                    {t('appointments.specialty')}
+                  </Text>
+                  <TextInput
+                    style={[
+                      styles.textInput,
+                      {
+                        backgroundColor: colors.surfaceSubtle,
+                        color: colors.text,
+                        borderColor: colors.cardBorder,
+                      },
+                    ]}
+                    placeholder={t('appointments.specialtyPlaceholder')}
+                    placeholderTextColor={colors.textMuted}
+                    value={specialty}
+                    onChangeText={setSpecialty}
+                  />
+                </View>
               </View>
-            </View>
+            ) : null}
 
             {/* Date & Time Input */}
             <DateTimePickerInput
@@ -174,10 +236,12 @@ export function AppointmentModal() {
               label={t('appointments.dateTime') || 'Date & Time'}
             />
 
-            {/* Location */}
+            {/* Location / Venue */}
             <View style={styles.inputGroup}>
               <Text style={[styles.label, { color: colors.textSecondary }]}>
-                {t('appointments.location')}
+                {t(`appointments.location_${category}`, {
+                  defaultValue: t('appointments.location'),
+                })}
               </Text>
               <TextInput
                 style={[
@@ -195,10 +259,12 @@ export function AppointmentModal() {
               />
             </View>
 
-            {/* Preparation Notes / Questions */}
+            {/* Preparation Notes / Requirements */}
             <View style={styles.inputGroup}>
               <Text style={[styles.label, { color: colors.textSecondary }]}>
-                {t('appointments.preparationNotes')}
+                {t(`appointments.notes_${category}`, {
+                  defaultValue: t('appointments.preparationNotes'),
+                })}
               </Text>
               <TextInput
                 style={[
@@ -210,7 +276,9 @@ export function AppointmentModal() {
                     borderColor: colors.cardBorder,
                   },
                 ]}
-                placeholder="e.g., Ask about sleep schedule and fever remedies"
+                placeholder={t(`appointments.notesPlaceholder_${category}`, {
+                  defaultValue: 'Notes...',
+                })}
                 placeholderTextColor={colors.textMuted}
                 multiline
                 numberOfLines={2}
@@ -240,7 +308,7 @@ export function AppointmentModal() {
               {/* 24h Reminder */}
               <View style={styles.toggleRow}>
                 <View style={styles.toggleLabelRow}>
-                  <Bell size={18} color={colors.appointment} />
+                  <Bell size={18} color={activeCategoryConfig.color} />
                   <Text style={[styles.toggleText, { color: colors.text }]}>
                     {t('appointments.remind24h')}
                   </Text>
@@ -248,7 +316,7 @@ export function AppointmentModal() {
                 <Switch
                   value={remind24h}
                   onValueChange={setRemind24h}
-                  trackColor={{ false: colors.surfaceSubtle, true: colors.appointment }}
+                  trackColor={{ false: colors.surfaceSubtle, true: activeCategoryConfig.color }}
                   thumbColor="#FFF"
                 />
               </View>
@@ -256,7 +324,7 @@ export function AppointmentModal() {
               {/* 2h Reminder */}
               <View style={[styles.toggleRow, { borderBottomWidth: 0 }]}>
                 <View style={styles.toggleLabelRow}>
-                  <Clock size={18} color={colors.appointment} />
+                  <Clock size={18} color={activeCategoryConfig.color} />
                   <Text style={[styles.toggleText, { color: colors.text }]}>
                     {t('appointments.remind2h')}
                   </Text>
@@ -264,7 +332,7 @@ export function AppointmentModal() {
                 <Switch
                   value={remind2h}
                   onValueChange={setRemind2h}
-                  trackColor={{ false: colors.surfaceSubtle, true: colors.appointment }}
+                  trackColor={{ false: colors.surfaceSubtle, true: activeCategoryConfig.color }}
                   thumbColor="#FFF"
                 />
               </View>
@@ -272,7 +340,7 @@ export function AppointmentModal() {
 
             {/* Save Button */}
             <TouchableOpacity
-              style={[styles.saveButton, { backgroundColor: colors.appointment }]}
+              style={[styles.saveButton, { backgroundColor: activeCategoryConfig.color }]}
               onPress={handleSave}
             >
               <Check size={20} color="#FFF" />
@@ -325,6 +393,23 @@ const styles = StyleSheet.create({
   },
   inputGroup: {
     marginBottom: 14,
+  },
+  categoryGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  categoryPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    gap: 6,
+  },
+  categoryText: {
+    fontSize: 13,
   },
   row: {
     flexDirection: 'row',

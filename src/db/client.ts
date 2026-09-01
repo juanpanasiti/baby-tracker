@@ -68,6 +68,7 @@ export async function initDatabase(): Promise<void> {
       id TEXT PRIMARY KEY NOT NULL,
       baby_id TEXT NOT NULL,
       title TEXT NOT NULL,
+      category TEXT NOT NULL DEFAULT 'medical',
       doctor_name TEXT,
       specialty TEXT,
       appointment_date INTEGER NOT NULL,
@@ -125,15 +126,21 @@ export async function initDatabase(): Promise<void> {
     );
   `);
 
-  // Safe migrations for added columns in reminders
+  // Safe migrations for added columns in reminders and appointments
   try {
-    const tableInfo = await expoDb.getAllAsync<{ name: string }>(`PRAGMA table_info(reminders);`);
-    const columnNames = tableInfo.map((c) => c.name);
-    if (!columnNames.includes('alert_mode')) {
+    const reminderTableInfo = await expoDb.getAllAsync<{ name: string }>(`PRAGMA table_info(reminders);`);
+    const reminderColumnNames = reminderTableInfo.map((c) => c.name);
+    if (!reminderColumnNames.includes('alert_mode')) {
       await expoDb.execAsync(`ALTER TABLE reminders ADD COLUMN alert_mode TEXT DEFAULT 'alarm';`);
     }
-    if (!columnNames.includes('sound_name')) {
+    if (!reminderColumnNames.includes('sound_name')) {
       await expoDb.execAsync(`ALTER TABLE reminders ADD COLUMN sound_name TEXT;`);
+    }
+
+    const appointmentTableInfo = await expoDb.getAllAsync<{ name: string }>(`PRAGMA table_info(appointments);`);
+    const appointmentColumnNames = appointmentTableInfo.map((c) => c.name);
+    if (!appointmentColumnNames.includes('category')) {
+      await expoDb.execAsync(`ALTER TABLE appointments ADD COLUMN category TEXT DEFAULT 'medical';`);
     }
   } catch {
     // Migration ignored if fails

@@ -40,6 +40,7 @@ export const appointmentRepository = {
   async createAppointment(data: Omit<NewAppointment, 'id' | 'createdAt'>): Promise<Appointment> {
     const db = getDb();
     const newAppointment: NewAppointment = {
+      category: data.category || 'medical',
       ...data,
       id: generateId(),
       createdAt: Date.now(),

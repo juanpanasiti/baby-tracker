@@ -41,6 +41,9 @@ export const appointments = sqliteTable('appointments', {
     .notNull()
     .references(() => babies.id, { onDelete: 'cascade' }),
   title: text('title').notNull(),
+  category: text('category', { enum: ['medical', 'vaccine', 'administrative', 'other'] })
+    .default('medical')
+    .notNull(),
   doctorName: text('doctor_name'),
   specialty: text('specialty'),
   appointmentDate: integer('appointment_date').notNull(),
@@ -111,6 +114,7 @@ export type NewDiaper = InferInsertModel<typeof diapers>;
 
 export type Appointment = InferSelectModel<typeof appointments>;
 export type NewAppointment = InferInsertModel<typeof appointments>;
+export type AppointmentCategory = 'medical' | 'vaccine' | 'administrative' | 'other';
 
 export type Reminder = InferSelectModel<typeof reminders>;
 export type NewReminder = InferInsertModel<typeof reminders>;
