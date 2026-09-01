@@ -5,15 +5,15 @@ Provides scheduled local push notifications and alarms for upcoming feeding inte
 ## Requirements
 
 ### Requirement: Schedule Local Push Alarm
-The system SHALL support scheduling exact local notifications and alarms with high-priority heads-up banners, full-screen intent over the lockscreen, and wake-lock capability for future timestamps using native notification triggers and high-importance alarm notification channels.
-
-#### Scenario: Scheduled feeding alarm triggers
-- **WHEN** the scheduled time for a feeding alarm is reached
-- **THEN** the system SHALL wake the device, display the dedicated full-screen alarm activity over the lockscreen if locked, play the selected alarm tone continuously in a loop at alarm stream volume, and show a maximum-priority heads-up notification with sound and actions
+The system SHALL support scheduling exact local alarms with high-priority heads-up banners, full-screen intent over the lockscreen, wake-lock capability, and continuous audio looping that persists until explicit caregiver dismissal.
 
 #### Scenario: Scheduled feeding alarm triggers while device is locked
 - **WHEN** the scheduled time for a feeding alarm is reached and the device is locked
-- **THEN** the system SHALL wake the screen, display the dedicated full-screen alarm activity over the lockscreen, play the selected alarm tone continuously in a loop at alarm stream volume, and vibrate until dismissed or snoozed
+- **THEN** the system SHALL wake the device screen, display the dedicated full-screen alarm interface over the lockscreen, play the selected alarm tone continuously in a loop at alarm stream volume, and vibrate rhythmically until the user taps Silence, Snooze, or Feed Baby
+
+#### Scenario: Scheduled feeding alarm triggers while device is in background/minimized
+- **WHEN** the scheduled time for a feeding alarm is reached and the application is in background
+- **THEN** the system SHALL launch the full-screen alarm activity, sound the looping alarm continuously, and display actionable notification buttons to Silence or Snooze without opening the full application
 
 #### Scenario: Scheduled feeding alarm triggers while device is unlocked
 - **WHEN** the scheduled time for a feeding alarm is reached and the caregiver is actively using the device
@@ -31,15 +31,19 @@ The system SHALL support two distinct alert modes for scheduled feeding reminder
 - **THEN** the system SHALL schedule a standard local notification with normal chime and heads-up banner
 
 ### Requirement: Full-Screen Feeding Alarm and Continuous Audio Loop
-The system SHALL provide a dedicated full-screen alarm interface and looping audio engine that keeps ringing at system alarm volume until the user explicitly dismisses or snoozes the alarm.
+The system SHALL provide a dedicated full-screen alarm interface and background-persistent looping audio engine that keeps ringing at system alarm volume across all application states (foreground, background, screen locked) until the user explicitly dismisses or snoozes the alarm.
 
 #### Scenario: Caregiver dismisses ringing alarm
-- **WHEN** the caregiver taps the "Silence" or "Feed Baby" button on the ringing full-screen alarm
-- **THEN** the system SHALL immediately stop the looping audio and vibration, dismiss the full-screen alarm, cancel the active alarm notification, and open the feeding log modal
+- **WHEN** the caregiver taps the "Silence" or "Feed Baby" button on the ringing full-screen alarm or notification action
+- **THEN** the system SHALL immediately stop the looping audio and vibration, dismiss the full-screen alarm, cancel the active alarm notification and foreground service, and open the feeding log modal
 
 #### Scenario: Caregiver snoozes ringing alarm
-- **WHEN** the caregiver taps the "Snooze" button (e.g. +15m) on the ringing full-screen alarm
+- **WHEN** the caregiver taps the "Snooze" button (e.g. +15m) on the ringing full-screen alarm or notification action
 - **THEN** the system SHALL immediately stop the looping audio and vibration, dismiss the full-screen alarm, and reschedule the feeding alarm for 15 minutes later
+
+#### Scenario: Caregiver logs dose or feeding directly from alarm
+- **WHEN** the caregiver taps "Feed Baby" or "Mark as Taken" on the ringing alarm
+- **THEN** the system SHALL immediately silence the audio loop, dismiss the alarm, record the action in the database, and compute the next scheduled reminder
 
 ### Requirement: Custom Audio Ringtone Playback
 The system SHALL support selecting and playing bundled alarm ringtones (`default`, `digital`, `chime`, `bells`, `gentle`) on the device alarm audio stream (`AUDIO_STREAM_ALARM`) that ignores silent / vibrate mode.

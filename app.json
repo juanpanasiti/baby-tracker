@@ -1,8 +1,8 @@
 {
   "expo": {
     "name": "Baby Care",
-    "slug": "baby-care",
-    "version": "1.4.0",
+    "slug": "baby-tracker",
+    "version": "1.5.0",
     "scheme": "babycare",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -16,7 +16,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.babycare.app",
-      "buildNumber": "6",
+      "buildNumber": "8",
       "infoPlist": {
         "NSRemindersUsageDescription": "Allow Baby Care to set reminders for baby appointments.",
         "NSCalendarsUsageDescription": "Allow Baby Care to sync appointments with your calendar.",
@@ -25,7 +25,7 @@
     },
     "android": {
       "package": "com.babycare.app",
-      "versionCode": 6,
+      "versionCode": 7,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#121212"
@@ -38,6 +38,8 @@
         "android.permission.WAKE_LOCK",
         "android.permission.VIBRATE",
         "android.permission.POST_NOTIFICATIONS",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK",
         "android.permission.READ_CALENDAR",
         "android.permission.WRITE_CALENDAR",
         "android.permission.READ_EXTERNAL_STORAGE",
@@ -49,6 +51,7 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
+      "@notifee/react-native",
       "expo-sqlite",
       "expo-localization",
       [
@@ -84,6 +87,7 @@
       "eas": {
         "projectId": "4a5c701e-98e2-4c09-b1f4-3b0a715ae277"
       }
-    }
+    },
+    "owner": "juanpanasiti"
   }
 }

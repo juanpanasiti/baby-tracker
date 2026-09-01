@@ -2,7 +2,7 @@
   "name": "baby-care",
   "description": "Baby Care application with React Native and Expo",
   "license": "MIT",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "main": "index.ts",
   "scripts": {
     "start": "expo start",
@@ -12,6 +12,7 @@
     "test": "jest"
   },
   "dependencies": {
+    "@notifee/react-native": "^9.1.8",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-community/datetimepicker": "8.4.4",
     "drizzle-orm": "^0.45.2",

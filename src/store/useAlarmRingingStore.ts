@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import notifee from '@notifee/react-native';
 import { alarmAudioService } from '../services/alarmAudioService';
 import { useFeedingStore } from './useFeedingStore';
 import { useBabyStore } from './useBabyStore';
@@ -87,6 +88,17 @@ export const useAlarmRingingStore = create<AlarmRingingState>((set, get) => ({
 
   silenceAlarm: async () => {
     await alarmAudioService.stopAlarm();
+    try {
+      await notifee.stopForegroundService();
+      const displayed = await notifee.getDisplayedNotifications();
+      for (const item of displayed) {
+        if (item.notification.id) {
+          await notifee.cancelNotification(item.notification.id);
+        }
+      }
+    } catch {
+      // Ignored
+    }
     set({
       isAlarmRinging: false,
     });
@@ -95,6 +107,18 @@ export const useAlarmRingingStore = create<AlarmRingingState>((set, get) => ({
   snoozeAlarm: async (minutes = 15) => {
     const { ringingBabyId, ringingBabyName, alarmType, medicationId } = get();
     await alarmAudioService.stopAlarm();
+    try {
+      await notifee.stopForegroundService();
+      const displayed = await notifee.getDisplayedNotifications();
+      for (const item of displayed) {
+        if (item.notification.id) {
+          await notifee.cancelNotification(item.notification.id);
+        }
+      }
+    } catch {
+      // Ignored
+    }
+
     set({
       isAlarmRinging: false,
     });
@@ -110,6 +134,18 @@ export const useAlarmRingingStore = create<AlarmRingingState>((set, get) => ({
   takeMedicationDose: async () => {
     const { medicationId } = get();
     await alarmAudioService.stopAlarm();
+    try {
+      await notifee.stopForegroundService();
+      const displayed = await notifee.getDisplayedNotifications();
+      for (const item of displayed) {
+        if (item.notification.id) {
+          await notifee.cancelNotification(item.notification.id);
+        }
+      }
+    } catch {
+      // Ignored
+    }
+
     set({
       isAlarmRinging: false,
     });
@@ -120,4 +156,5 @@ export const useAlarmRingingStore = create<AlarmRingingState>((set, get) => ({
     }
   },
 }));
+
 

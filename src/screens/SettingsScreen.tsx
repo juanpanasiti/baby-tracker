@@ -25,6 +25,7 @@ import {
 } from 'lucide-react-native';
 import { usePreferencesStore, ALARM_SOUNDS, type AlarmSoundId } from '../store/usePreferencesStore';
 import { notificationService } from '../services/notificationService';
+import Constants from 'expo-constants';
 
 export function SettingsScreen() {
   const { t } = useTranslation();
@@ -234,7 +235,9 @@ export function SettingsScreen() {
           <View>
             <Text style={[styles.cardTitle, { color: colors.text }]}>Baby Care</Text>
             <Text style={[styles.cardSubtitle, { color: colors.textMuted }]}>
-              {t('settings.version')}
+              {t('settings.version', {
+                version: Constants.expoConfig?.version ?? Constants.nativeAppVersion ?? '1.0.0',
+              })}
             </Text>
           </View>
         </View>

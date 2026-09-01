@@ -11,7 +11,7 @@ Baby Care helps parents and caregivers log and monitor essential baby routines w
   - **Bottle Feeding**: Milliliter (ml) volume logging with quick-preset pill selectors.
   - **Custom Date & Time**: Set exact event timestamp with quick offsets (`Now`, `-15m`, `-30m`, `-1h`) and manual date/time inputs.
   - **Dual Alert Modes (Notification vs Loud Alarm)**: Choose between discrete daytime push notifications and loud, insistent nighttime waking alarms using Android `USAGE_ALARM` audio streams.
-  - **Continuous Looping Alarm & Full-Screen Intent**: Feeding alarms ring continuously in a loop at system alarm volume with custom ringtones (`alarm_digital`, `alarm_chime`, `alarm_bells`, `alarm_gentle`) until explicitly silenced or snoozed. On Android, full-screen intent wakes the device and presents the interactive alarm over the lockscreen.
+  - **Persistent Looping Alarm & Lockscreen Wakeup**: Feeding and medication alarms ring continuously in an infinite audio and vibration loop via `@notifee/react-native` with foreground service persistence (`loopSound: true`, `asForegroundService: true`, `SET_ALARM_CLOCK`). When triggered with the phone locked, Android wakes the screen and immediately launches the interactive full-screen alarm over the lockscreen with direct actions to silence, snooze (+15m), or log the dose/feeding without unlocking the device.
   - **Next Feeding Alarms & Exact Time**: Interactive prompt following each log with intervals (2h, 2.5h, 3h, 3.5h, 4h) or custom exact time picker.
   - **Interactive Dashboard Banner & Quick Postpone**: Postpone active reminders with 1-tap buttons (`+15m`, `+30m`) or tap to open the full **Edit Reminder Modal** to adjust target time, toggle alert mode, or cancel.
 - **Medications & Treatment Reminders**:
@@ -41,9 +41,10 @@ Baby Care helps parents and caregivers log and monitor essential baby routines w
 - **Database & Storage**: `expo-sqlite` + `drizzle-orm` (type-safe SQLite persistence)
 - **State Management**: `zustand` + `@react-native-async-storage/async-storage`
 - **Native Integrations**:
+  - `@notifee/react-native`: Android persistent alarm clock engine, infinite audio looping (`loopSound`), lockscreen wakeup (`USE_FULL_SCREEN_INTENT`), and background action handlers (`onBackgroundEvent`)
   - `@react-native-community/datetimepicker`: Native OS date and time picker dialogs (Android Material & iOS modal)
-  - `expo-notifications`: High-priority exact local push notifications (`USE_EXACT_ALARM`, `USE_FULL_SCREEN_INTENT`, `WAKE_LOCK`) with `MAX` importance Android channels for reliable alerts during Doze mode
-  - `expo-av`: System alarm stream audio playback with continuous looping and vibration support
+  - `expo-notifications`: High-priority local push notifications & appointment reminders
+  - `expo-av`: System alarm stream audio playback and vibration support
   - `expo-calendar`: Native device calendar event creation and sync
   - `expo-image-picker`: Baby profile avatar selection
 - **Localization**: `i18next` + `react-i18next` + `expo-localization`
