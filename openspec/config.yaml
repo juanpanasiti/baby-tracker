@@ -30,6 +30,7 @@ context: |
     - All code, comments, documentation, and OpenSpec artifacts MUST be written in English.
     - Clean architecture with clear separation between UI, state management, and services.
     - Always review and update README.md whenever a code change affects setup, features, or project structure.
+    - Versioning follows Semantic Versioning with three numbers (MAJOR.MINOR.PATCH): first number for major versions or breaking changes, second for new features, and third for bug fixes.
 
 # Per-Artifact Rules
 # Rules applied when creating specific OpenSpec planning artifacts.
@@ -39,7 +40,7 @@ rules:
     - Do not generate artifacts with assumed information; ask for clarification on any unstated requirements.
     - Explicitly define User Impact, Goals, and Non-Goals.
     - Document all known constraints and dependencies.
-    - Take in account the version update in the list of tasks.
+    - Take into account the version update in the list of tasks, following Semantic Versioning with three numbers (MAJOR.MINOR.PATCH): first number for major versions or breaking changes, second for new features, and third for bug fixes.
   specs:
     - All content, requirements, and scenarios must be written in English.
     - Specify clear, testable acceptance criteria for every capability.
@@ -47,6 +48,7 @@ rules:
   tasks:
     - All task descriptions, comments, and instructions must be written in English.
     - Enumerate tasks and subtasks hierarchically (e.g., Task 1 with subtasks 1.1, 1.2; Task 2 with 2.1, 2.2).
+    - Include a task/subtask to update the app version following Semantic Versioning (MAJOR.MINOR.PATCH): first number for major versions or breaking changes, second for new features, and third for bug fixes.
     - Place all test creation and execution tasks near the end of the implementation plan.
     - Include a task/subtask to review and update README.md if the changes affect project usage, setup, or architecture.
     - Include a final validation task at the very end to verify that the implementation satisfies all requirements established in the proposal.
