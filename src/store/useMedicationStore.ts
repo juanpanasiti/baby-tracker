@@ -187,6 +187,18 @@ export const useMedicationStore = create<MedicationState>((set, get) => ({
     const currentBaby = useBabyStore.getState().baby;
     const babyName = currentBaby?.name || 'Baby';
 
+    // Cancel any pending re-alert notifications for this medication
+    await notificationService.cancelMedicationReAlerts(med.id);
+
+    // If this medication alarm is currently ringing in full-screen modal, dismiss it
+    const { useAlarmRingingStore } = require('./useAlarmRingingStore');
+    const ringingStore = useAlarmRingingStore.getState();
+    if (ringingStore.isAlarmRinging && ringingStore.medicationId === med.id) {
+      const { alarmAudioService } = require('../services/alarmAudioService');
+      await alarmAudioService.stopAlarm();
+      useAlarmRingingStore.setState({ isAlarmRinging: false });
+    }
+
     // Advance schedule for next reminder
     if (med.status === 'active') {
       await get().scheduleNextReminderForMedication(babyName, med, logTimestamp);

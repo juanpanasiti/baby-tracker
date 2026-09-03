@@ -110,6 +110,15 @@ export const useFeedingStore = create<FeedingState>((set, get) => ({
   },
 
   createFeeding: async (babyId: string, data) => {
+    // Cancel any pending or re-alerting feeding reminder notifications
+    const currentReminder = get().activeReminder;
+    if (currentReminder) {
+      if (currentReminder.notificationId) {
+        await notificationService.cancelNotification(currentReminder.notificationId);
+      }
+      await reminderRepository.deactivateRemindersByType(babyId, 'feeding');
+    }
+
     const created = await feedingRepository.createFeeding({
       ...data,
       babyId,
@@ -119,6 +128,7 @@ export const useFeedingStore = create<FeedingState>((set, get) => ({
     set({
       feedings,
       latestFeeding: created,
+      activeReminder: null,
       isFeedingModalOpen: false,
       editingFeeding: null,
       isReminderPromptOpen: true,

@@ -22,8 +22,15 @@ import {
   Bell,
   Volume2,
   Sparkles,
+  RotateCcw,
 } from 'lucide-react-native';
-import { usePreferencesStore, ALARM_SOUNDS, type AlarmSoundId } from '../store/usePreferencesStore';
+import {
+  usePreferencesStore,
+  ALARM_SOUNDS,
+  ALARM_NAGGING_INTERVALS,
+  ALARM_NAGGING_MAX_REPEATS,
+  type AlarmSoundId,
+} from '../store/usePreferencesStore';
 import { notificationService } from '../services/notificationService';
 import Constants from 'expo-constants';
 
@@ -32,7 +39,18 @@ export function SettingsScreen() {
   const { themeMode, colors, setThemeMode } = useThemeStore();
   const { language, setLanguage } = useLocaleStore();
   const { baby, openProfileModal } = useBabyStore();
-  const { alarmSound, setAlarmSound, smartNightMode, setSmartNightMode } = usePreferencesStore();
+  const {
+    alarmSound,
+    setAlarmSound,
+    smartNightMode,
+    setSmartNightMode,
+    alarmNaggingEnabled,
+    setAlarmNaggingEnabled,
+    alarmNaggingInterval,
+    setAlarmNaggingInterval,
+    alarmNaggingMaxRepeats,
+    setAlarmNaggingMaxRepeats,
+  } = usePreferencesStore();
 
   const [isSoundSelectorOpen, setIsSoundSelectorOpen] = React.useState(false);
   const isDark = themeMode === 'dark';
@@ -141,7 +159,7 @@ export function SettingsScreen() {
         )}
 
         {/* Smart Night Mode Switch */}
-        <View style={[styles.langRow, { borderBottomWidth: 0 }]}>
+        <View style={[styles.langRow, { borderBottomColor: colors.cardBorder }]}>
           <View style={[styles.rowLeft, { flex: 1, paddingRight: 12 }]}>
             <View style={[styles.iconBg, { backgroundColor: colors.primary + '20' }]}>
               <Sparkles size={20} color={colors.primary} />
@@ -160,6 +178,104 @@ export function SettingsScreen() {
             thumbColor="#FFF"
           />
         </View>
+
+        {/* Persistent Alarm Re-Alert (Nagging) */}
+        <View style={[styles.langRow, { borderBottomWidth: alarmNaggingEnabled ? 1 : 0, borderBottomColor: colors.cardBorder }]}>
+          <View style={[styles.rowLeft, { flex: 1, paddingRight: 12 }]}>
+            <View style={[styles.iconBg, { backgroundColor: colors.warning + '20' }]}>
+              <RotateCcw size={20} color={colors.warning} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.cardTitle, { color: colors.text }]}>{t('settings.persistentAlarmReAlert')}</Text>
+              <Text style={[styles.cardSubtitle, { color: colors.textMuted }]} numberOfLines={2}>
+                {t('settings.persistentAlarmReAlertDesc')}
+              </Text>
+            </View>
+          </View>
+          <Switch
+            value={alarmNaggingEnabled}
+            onValueChange={(val) => setAlarmNaggingEnabled(val)}
+            trackColor={{ false: colors.surfaceSubtle, true: colors.primary }}
+            thumbColor="#FFF"
+          />
+        </View>
+
+        {/* Re-Alert Details: Interval & Max Repeats */}
+        {alarmNaggingEnabled && (
+          <View style={{ backgroundColor: colors.surfaceSubtle, paddingTop: 12, paddingBottom: 6 }}>
+            {/* Interval Selector */}
+            <View style={{ paddingHorizontal: 16, marginBottom: 12 }}>
+              <Text style={[styles.subOptionHeader, { color: colors.textSecondary }]}>
+                {t('settings.reAlertInterval')}
+              </Text>
+              <View style={styles.pillRow}>
+                {ALARM_NAGGING_INTERVALS.map((intVal) => (
+                  <TouchableOpacity
+                    key={intVal}
+                    style={[
+                      styles.pillBtn,
+                      {
+                        backgroundColor: alarmNaggingInterval === intVal ? colors.primary : colors.card,
+                        borderColor: alarmNaggingInterval === intVal ? colors.primary : colors.cardBorder,
+                      },
+                    ]}
+                    onPress={() => setAlarmNaggingInterval(intVal)}
+                    activeOpacity={0.7}
+                  >
+                    <Text
+                      style={[
+                        styles.pillText,
+                        {
+                          color: alarmNaggingInterval === intVal ? '#FFFFFF' : colors.text,
+                          fontWeight: alarmNaggingInterval === intVal ? '700' : '500',
+                        },
+                      ]}
+                    >
+                      {t('settings.reAlertIntervalMinutes', { minutes: intVal })}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            {/* Max Repeats Selector */}
+            <View style={{ paddingHorizontal: 16, marginBottom: 10 }}>
+              <Text style={[styles.subOptionHeader, { color: colors.textSecondary }]}>
+                {t('settings.maxRepeats')}
+              </Text>
+              <View style={styles.pillRow}>
+                {ALARM_NAGGING_MAX_REPEATS.map((repVal, idx) => (
+                  <TouchableOpacity
+                    key={idx}
+                    style={[
+                      styles.pillBtn,
+                      {
+                        backgroundColor: alarmNaggingMaxRepeats === repVal ? colors.primary : colors.card,
+                        borderColor: alarmNaggingMaxRepeats === repVal ? colors.primary : colors.cardBorder,
+                      },
+                    ]}
+                    onPress={() => setAlarmNaggingMaxRepeats(repVal)}
+                    activeOpacity={0.7}
+                  >
+                    <Text
+                      style={[
+                        styles.pillText,
+                        {
+                          color: alarmNaggingMaxRepeats === repVal ? '#FFFFFF' : colors.text,
+                          fontWeight: alarmNaggingMaxRepeats === repVal ? '700' : '500',
+                        },
+                      ]}
+                    >
+                      {repVal === null
+                        ? t('settings.maxRepeatsIndefinite')
+                        : t('settings.maxRepeatsCount', { count: repVal })}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          </View>
+        )}
       </View>
 
       {/* Appearance / Theme */}
@@ -335,5 +451,26 @@ const styles = StyleSheet.create({
   testSoundText: {
     fontSize: 13,
     fontWeight: '600',
+  },
+  subOptionHeader: {
+    fontSize: 12,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 8,
+  },
+  pillRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  pillBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  pillText: {
+    fontSize: 13,
   },
 });

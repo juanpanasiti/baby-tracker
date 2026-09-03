@@ -147,85 +147,157 @@ export function DashboardScreen({
       <ProfileHeader />
 
       {/* Active Feeding Reminder Banner */}
-      {activeReminder && activeReminder.isActive && activeReminder.targetTime > Date.now() && (
-        <View
-          style={[
-            styles.alarmCard,
-            {
-              backgroundColor: isAlarmMode ? colors.warning + '12' : colors.primary + '12',
-              borderColor: isAlarmMode ? colors.warning + '80' : colors.primary + '80',
-            },
-          ]}
-        >
-          <TouchableOpacity
-            style={styles.alarmTopRow}
-            onPress={openEditReminderModal}
-            activeOpacity={0.7}
+      {activeReminder && activeReminder.isActive && activeReminder.targetTime > Date.now() && (() => {
+        const isReAlert = activeReminder.notificationId?.startsWith('realert-') || false;
+        const minutesLeft = Math.max(1, Math.ceil((activeReminder.targetTime - Date.now()) / (60 * 1000)));
+
+        return (
+          <View
+            style={[
+              styles.alarmCard,
+              {
+                backgroundColor: isReAlert
+                  ? (colors.error || '#EF4444') + '14'
+                  : isAlarmMode
+                  ? colors.warning + '12'
+                  : colors.primary + '12',
+                borderColor: isReAlert
+                  ? (colors.error || '#EF4444') + '80'
+                  : isAlarmMode
+                  ? colors.warning + '80'
+                  : colors.primary + '80',
+              },
+            ]}
           >
-            <View style={styles.alarmLeft}>
-              <View
-                style={[
-                  styles.alarmIconBg,
-                  { backgroundColor: isAlarmMode ? colors.warning : colors.primary },
-                ]}
-              >
-                {isAlarmMode ? <Sparkles size={18} color="#FFF" /> : <Bell size={18} color="#FFF" />}
-              </View>
-              <View style={styles.alarmTextContainer}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                  <Text
-                    style={[
-                      styles.alarmTitle,
-                      { color: isAlarmMode ? colors.warning : colors.primaryLight },
-                    ]}
-                  >
-                    {isAlarmMode
-                      ? t('alarms.activeAlarm', { time: formatTimeOnly(activeReminder.targetTime) })
-                      : t('alarms.activeNotification', { time: formatTimeOnly(activeReminder.targetTime) })}
+            <TouchableOpacity
+              style={styles.alarmTopRow}
+              onPress={openEditReminderModal}
+              activeOpacity={0.7}
+            >
+              <View style={styles.alarmLeft}>
+                <View
+                  style={[
+                    styles.alarmIconBg,
+                    {
+                      backgroundColor: isReAlert
+                        ? colors.error || '#EF4444'
+                        : isAlarmMode
+                        ? colors.warning
+                        : colors.primary,
+                    },
+                  ]}
+                >
+                  {isReAlert ? (
+                    <Bell size={18} color="#FFF" />
+                  ) : isAlarmMode ? (
+                    <Sparkles size={18} color="#FFF" />
+                  ) : (
+                    <Bell size={18} color="#FFF" />
+                  )}
+                </View>
+                <View style={styles.alarmTextContainer}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <Text
+                      style={[
+                        styles.alarmTitle,
+                        {
+                          color: isReAlert
+                            ? colors.error || '#EF4444'
+                            : isAlarmMode
+                            ? colors.warning
+                            : colors.primaryLight,
+                        },
+                      ]}
+                    >
+                      {isReAlert
+                        ? t('alarms.reAlertStatus', { minutes: minutesLeft })
+                        : isAlarmMode
+                        ? t('alarms.activeAlarm', { time: formatTimeOnly(activeReminder.targetTime) })
+                        : t('alarms.activeNotification', { time: formatTimeOnly(activeReminder.targetTime) })}
+                    </Text>
+                  </View>
+                  <Text style={[styles.alarmSubtitle, { color: colors.textSecondary }]}>
+                    {t('feeding.lastFeeding')}: {latestFeeding ? formatRelativeTime(latestFeeding.timestamp, isSpanish) : '—'}
                   </Text>
                 </View>
-                <Text style={[styles.alarmSubtitle, { color: colors.textSecondary }]}>
-                  {t('feeding.lastFeeding')}: {latestFeeding ? formatRelativeTime(latestFeeding.timestamp, isSpanish) : '—'}
-                </Text>
               </View>
-            </View>
-            <TouchableOpacity
-              style={styles.cancelAlarmBtn}
-              onPress={() => baby && cancelActiveReminder(baby.id)}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <X size={18} color={colors.textMuted} />
-            </TouchableOpacity>
-          </TouchableOpacity>
-
-          {/* Quick Postpone & Edit Actions Footer */}
-          <View style={[styles.alarmActionsRow, { borderTopColor: colors.cardBorder }]}>
-            <TouchableOpacity
-              style={[styles.quickPostponeBtn, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}
-              onPress={() => baby && postponeActiveReminder(baby.id, baby.name, 15)}
-            >
-              <Clock size={13} color={colors.primaryLight} />
-              <Text style={[styles.quickPostponeText, { color: colors.text }]}>{t('alarms.postpone15')}</Text>
+              <TouchableOpacity
+                style={styles.cancelAlarmBtn}
+                onPress={() => baby && cancelActiveReminder(baby.id)}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <X size={18} color={colors.textMuted} />
+              </TouchableOpacity>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={[styles.quickPostponeBtn, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}
-              onPress={() => baby && postponeActiveReminder(baby.id, baby.name, 30)}
-            >
-              <Clock size={13} color={colors.primaryLight} />
-              <Text style={[styles.quickPostponeText, { color: colors.text }]}>{t('alarms.postpone30')}</Text>
-            </TouchableOpacity>
+            {/* Quick Actions Footer */}
+            {isReAlert ? (
+              <View style={[styles.alarmActionsRow, { borderTopColor: colors.cardBorder }]}>
+                <TouchableOpacity
+                  style={[
+                    styles.quickPostponeBtn,
+                    {
+                      backgroundColor: colors.primary,
+                      borderColor: colors.primary,
+                      flex: 1.4,
+                    },
+                  ]}
+                  onPress={() => openFeedingModal('breast')}
+                >
+                  <Milk size={14} color="#FFF" />
+                  <Text style={[styles.quickPostponeText, { color: '#FFF', fontWeight: '700' }]}>
+                    {t('alarms.logNow')}
+                  </Text>
+                </TouchableOpacity>
 
-            <TouchableOpacity
-              style={[styles.quickPostponeBtn, { backgroundColor: colors.card, borderColor: colors.cardBorder, flex: 1.2 }]}
-              onPress={openEditReminderModal}
-            >
-              <Edit3 size={13} color={colors.primaryLight} />
-              <Text style={[styles.quickPostponeText, { color: colors.primaryLight }]}>{t('common.edit')}</Text>
-            </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.quickPostponeBtn, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}
+                  onPress={() => baby && postponeActiveReminder(baby.id, baby.name, 15)}
+                >
+                  <Clock size={13} color={colors.primaryLight} />
+                  <Text style={[styles.quickPostponeText, { color: colors.text }]}>{t('alarms.postpone15')}</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.quickPostponeBtn, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}
+                  onPress={() => baby && cancelActiveReminder(baby.id)}
+                >
+                  <X size={13} color={colors.error || '#EF4444'} />
+                  <Text style={[styles.quickPostponeText, { color: colors.error || '#EF4444' }]}>
+                    {t('alarms.dismissShort')}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View style={[styles.alarmActionsRow, { borderTopColor: colors.cardBorder }]}>
+                <TouchableOpacity
+                  style={[styles.quickPostponeBtn, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}
+                  onPress={() => baby && postponeActiveReminder(baby.id, baby.name, 15)}
+                >
+                  <Clock size={13} color={colors.primaryLight} />
+                  <Text style={[styles.quickPostponeText, { color: colors.text }]}>{t('alarms.postpone15')}</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.quickPostponeBtn, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}
+                  onPress={() => baby && postponeActiveReminder(baby.id, baby.name, 30)}
+                >
+                  <Clock size={13} color={colors.primaryLight} />
+                  <Text style={[styles.quickPostponeText, { color: colors.text }]}>{t('alarms.postpone30')}</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.quickPostponeBtn, { backgroundColor: colors.card, borderColor: colors.cardBorder, flex: 1.2 }]}
+                  onPress={openEditReminderModal}
+                >
+                  <Edit3 size={13} color={colors.primaryLight} />
+                  <Text style={[styles.quickPostponeText, { color: colors.primaryLight }]}>{t('common.edit')}</Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
-        </View>
-      )}
+        );
+      })()}
 
       {/* Upcoming Medication Dose Banner */}
       {nextMedicationDose && (

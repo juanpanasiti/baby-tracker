@@ -29,9 +29,12 @@ export function FullScreenAlarmModal() {
     alarmType,
     medicationName,
     dosage,
+    isReAlert,
+    repeatCount,
     silenceAlarm,
     snoozeAlarm,
     takeMedicationDose,
+    dismissAlarm,
   } = useAlarmRingingStore();
   const { baby } = useBabyStore();
   const { openFeedingModal } = useFeedingStore();
@@ -103,6 +106,10 @@ export function FullScreenAlarmModal() {
     await snoozeAlarm(15);
   };
 
+  const handleDismiss = async () => {
+    await dismissAlarm();
+  };
+
   const soundLabel =
     ALARM_SOUNDS.find((s) => s.id === ringingSound)?.labelKey || 'settings.soundDefault';
 
@@ -159,7 +166,11 @@ export function FullScreenAlarmModal() {
                 isMedicationAlarm ? { color: '#34D399' } : null,
               ]}
             >
-              {isMedicationAlarm
+              {isReAlert
+                ? isMedicationAlarm
+                  ? t('alarms.reAlertMedicationTitle', { defaultValue: 'MEDICATION RE-ALERT' })
+                  : t('alarms.reAlertFeedingTitle', { defaultValue: 'FEEDING RE-ALERT' })
+                : isMedicationAlarm
                 ? t('medications.alarmBadge', { defaultValue: 'MEDICATION ALARM' })
                 : t('alarms.ringingTitle')}
             </Text>
@@ -267,6 +278,15 @@ export function FullScreenAlarmModal() {
               <Text style={styles.silenceOnlyText}>{t('alarms.silence')}</Text>
             </TouchableOpacity>
           </View>
+
+          {/* Dismiss without logging */}
+          <TouchableOpacity
+            style={styles.dismissButton}
+            onPress={handleDismiss}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.dismissButtonText}>{t('alarms.dismiss')}</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </Modal>
@@ -461,5 +481,17 @@ const styles = StyleSheet.create({
     color: '#94A3B8',
     fontSize: 15,
     fontWeight: '600',
+  },
+  dismissButton: {
+    paddingVertical: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 6,
+  },
+  dismissButtonText: {
+    color: '#64748B',
+    fontSize: 14,
+    fontWeight: '500',
+    textDecorationLine: 'underline',
   },
 });

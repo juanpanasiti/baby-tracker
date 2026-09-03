@@ -13,6 +13,9 @@ export interface TriggerAlarmParams {
   medicationId?: string;
   medicationName?: string;
   dosage?: string;
+  isReAlert?: boolean;
+  repeatCount?: number;
+  originalTargetTime?: number;
 }
 
 interface AlarmRingingState {
@@ -25,11 +28,15 @@ interface AlarmRingingState {
   medicationId?: string;
   medicationName?: string;
   dosage?: string;
+  isReAlert: boolean;
+  repeatCount: number;
+  originalTargetTime?: number;
 
   triggerAlarm: (params?: TriggerAlarmParams | string, babyName?: string, soundName?: string) => Promise<void>;
   silenceAlarm: () => Promise<void>;
   snoozeAlarm: (minutes?: number) => Promise<void>;
   takeMedicationDose: () => Promise<void>;
+  dismissAlarm: () => Promise<void>;
 }
 
 export const useAlarmRingingStore = create<AlarmRingingState>((set, get) => ({
@@ -42,6 +49,9 @@ export const useAlarmRingingStore = create<AlarmRingingState>((set, get) => ({
   medicationId: undefined,
   medicationName: undefined,
   dosage: undefined,
+  isReAlert: false,
+  repeatCount: 0,
+  originalTargetTime: undefined,
 
   triggerAlarm: async (params, babyName, soundName) => {
     let resolvedBabyId: string | undefined;
@@ -51,6 +61,9 @@ export const useAlarmRingingStore = create<AlarmRingingState>((set, get) => ({
     let medicationId: string | undefined;
     let medicationName: string | undefined;
     let dosage: string | undefined;
+    let isReAlert = false;
+    let repeatCount = 0;
+    let originalTargetTime: number | undefined;
 
     if (typeof params === 'object' && params !== null) {
       resolvedBabyId = params.babyId;
@@ -60,6 +73,9 @@ export const useAlarmRingingStore = create<AlarmRingingState>((set, get) => ({
       medicationId = params.medicationId;
       medicationName = params.medicationName;
       dosage = params.dosage;
+      isReAlert = Boolean(params.isReAlert);
+      repeatCount = params.repeatCount || 0;
+      originalTargetTime = params.originalTargetTime;
     } else {
       resolvedBabyId = params;
       resolvedBabyName = babyName;
@@ -81,12 +97,27 @@ export const useAlarmRingingStore = create<AlarmRingingState>((set, get) => ({
       medicationId,
       medicationName,
       dosage,
+      isReAlert,
+      repeatCount,
+      originalTargetTime,
     });
 
     await alarmAudioService.startAlarm(finalSound);
   },
 
   silenceAlarm: async () => {
+    const {
+      ringingBabyId,
+      ringingBabyName,
+      ringingSound,
+      alarmType,
+      medicationId,
+      medicationName,
+      dosage,
+      repeatCount,
+      originalTargetTime,
+    } = get();
+
     await alarmAudioService.stopAlarm();
     try {
       await notifee.stopForegroundService();
@@ -99,9 +130,79 @@ export const useAlarmRingingStore = create<AlarmRingingState>((set, get) => ({
     } catch {
       // Ignored
     }
+
     set({
       isAlarmRinging: false,
     });
+
+    // Schedule re-alert if nagging is enabled and within repeat limits
+    try {
+      const { notificationService } = require('../services/notificationService');
+      const result = await notificationService.scheduleReAlertAlarm({
+        type: alarmType,
+        babyName: ringingBabyName || 'Baby',
+        babyId: ringingBabyId || undefined,
+        soundName: ringingSound,
+        repeatCount,
+        originalTargetTime: originalTargetTime || Date.now(),
+        medicationId,
+        medicationName,
+        dosage,
+      });
+
+      if (result && alarmType === 'feeding' && ringingBabyId) {
+        const { reminderRepository } = require('../db/repositories/reminderRepository');
+        const activeReminder = await reminderRepository.getNextActiveFeedingReminder(ringingBabyId);
+        if (activeReminder) {
+          await reminderRepository.updateReminder(activeReminder.id, {
+            targetTime: result.targetTime,
+            notificationId: result.notificationId,
+          });
+          const updated = await reminderRepository.getNextActiveFeedingReminder(ringingBabyId);
+          useFeedingStore.setState({ activeReminder: updated });
+        } else {
+          const newReminder = await reminderRepository.createReminder({
+            babyId: ringingBabyId,
+            type: 'feeding',
+            targetTime: result.targetTime,
+            notificationId: result.notificationId,
+            alertMode: 'alarm',
+            soundName: ringingSound,
+            isActive: true,
+          });
+          useFeedingStore.setState({ activeReminder: newReminder });
+        }
+      }
+    } catch (e) {
+      console.warn('[useAlarmRingingStore] Failed to schedule re-alert on silence:', e);
+    }
+  },
+
+  dismissAlarm: async () => {
+    const { ringingBabyId, alarmType, medicationId } = get();
+    await alarmAudioService.stopAlarm();
+    try {
+      await notifee.stopForegroundService();
+      const displayed = await notifee.getDisplayedNotifications();
+      for (const item of displayed) {
+        if (item.notification.id) {
+          await notifee.cancelNotification(item.notification.id);
+        }
+      }
+    } catch {
+      // Ignored
+    }
+
+    set({
+      isAlarmRinging: false,
+    });
+
+    if (alarmType === 'feeding' && ringingBabyId) {
+      await useFeedingStore.getState().cancelActiveReminder(ringingBabyId);
+    } else if (alarmType === 'medication' && medicationId) {
+      const { useMedicationStore } = require('./useMedicationStore');
+      await useMedicationStore.getState().postponeReminder(medicationId, 60 * 24);
+    }
   },
 
   snoozeAlarm: async (minutes = 15) => {

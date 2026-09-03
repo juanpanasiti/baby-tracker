@@ -11,6 +11,7 @@ import notifee, {
 import { Platform } from 'react-native';
 import i18n from '../i18n';
 import { useAlarmRingingStore } from '../store/useAlarmRingingStore';
+import { usePreferencesStore } from '../store/usePreferencesStore';
 
 export const FEEDING_ALARM_CATEGORY = 'feeding-alarm-category';
 export const MEDICATION_ALARM_CATEGORY = 'medication-alarm-category';
@@ -30,6 +31,9 @@ Notifications.setNotificationHandler({
         medicationId: data.medicationId as string | undefined,
         medicationName: data.medicationName as string | undefined,
         dosage: data.dosage as string | undefined,
+        isReAlert: String(data?.isReAlert) === 'true',
+        repeatCount: data?.repeatCount ? Number(data.repeatCount) : 0,
+        originalTargetTime: data?.originalTargetTime ? Number(data.originalTargetTime) : undefined,
       });
     }
 
@@ -63,6 +67,13 @@ export const notificationService = {
             opensAppToForeground: false,
           },
         },
+        {
+          identifier: 'DISMISS_ALARM',
+          buttonTitle: i18n.t('alarms.dismissShort', { defaultValue: 'Dismiss' }),
+          options: {
+            opensAppToForeground: false,
+          },
+        },
       ]);
 
       await Notifications.setNotificationCategoryAsync(MEDICATION_ALARM_CATEGORY, [
@@ -74,6 +85,14 @@ export const notificationService = {
           },
         },
         {
+          identifier: 'SILENCE_ALARM',
+          buttonTitle: i18n.t('alarms.silence', { defaultValue: 'Silence' }),
+          options: {
+            isDestructive: true,
+            opensAppToForeground: false,
+          },
+        },
+        {
           identifier: 'SNOOZE_ALARM',
           buttonTitle: i18n.t('alarms.snooze', { defaultValue: 'Snooze (+15m)' }),
           options: {
@@ -81,10 +100,9 @@ export const notificationService = {
           },
         },
         {
-          identifier: 'SILENCE_ALARM',
-          buttonTitle: i18n.t('alarms.silence', { defaultValue: 'Silence' }),
+          identifier: 'DISMISS_ALARM',
+          buttonTitle: i18n.t('alarms.dismissShort', { defaultValue: 'Dismiss' }),
           options: {
-            isDestructive: true,
             opensAppToForeground: false,
           },
         },
@@ -226,6 +244,8 @@ export const notificationService = {
           useAlarmRingingStore.getState().snoozeAlarm(15);
         } else if (actionId === 'TAKE_MEDICATION') {
           useAlarmRingingStore.getState().takeMedicationDose();
+        } else if (actionId === 'DISMISS_ALARM') {
+          useAlarmRingingStore.getState().dismissAlarm();
         } else if (data?.alertMode === 'alarm') {
           useAlarmRingingStore.getState().triggerAlarm({
             babyId: data.babyId as string | undefined,
@@ -235,6 +255,9 @@ export const notificationService = {
             medicationId: data.medicationId as string | undefined,
             medicationName: data.medicationName as string | undefined,
             dosage: data.dosage as string | undefined,
+            isReAlert: String(data?.isReAlert) === 'true',
+            repeatCount: data?.repeatCount ? Number(data.repeatCount) : 0,
+            originalTargetTime: data?.originalTargetTime ? Number(data.originalTargetTime) : undefined,
           });
         }
       }
@@ -266,6 +289,11 @@ export const notificationService = {
             if (notification?.id) {
               await notifee.cancelNotification(notification.id);
             }
+          } else if (actionId === 'DISMISS_ALARM') {
+            await useAlarmRingingStore.getState().dismissAlarm();
+            if (notification?.id) {
+              await notifee.cancelNotification(notification.id);
+            }
           } else {
             // Caregiver tapped notification banner -> Trigger full screen alarm UI
             if (data?.alertMode === 'alarm') {
@@ -277,6 +305,9 @@ export const notificationService = {
                 medicationId: data.medicationId as string | undefined,
                 medicationName: data.medicationName as string | undefined,
                 dosage: data.dosage as string | undefined,
+                isReAlert: String(data?.isReAlert) === 'true',
+                repeatCount: data?.repeatCount ? Number(data.repeatCount) : 0,
+                originalTargetTime: data?.originalTargetTime ? Number(data.originalTargetTime) : undefined,
               });
             }
           }
@@ -296,12 +327,17 @@ export const notificationService = {
           useAlarmRingingStore.getState().silenceAlarm();
         } else if (actionIdentifier === 'SNOOZE_ALARM') {
           useAlarmRingingStore.getState().snoozeAlarm(15);
+        } else if (actionIdentifier === 'DISMISS_ALARM') {
+          useAlarmRingingStore.getState().dismissAlarm();
         } else {
           useAlarmRingingStore.getState().triggerAlarm({
             babyId: data.babyId as string | undefined,
             babyName: data.babyName as string | undefined,
             soundName: data.soundName as string | undefined,
             alarmType: 'feeding',
+            isReAlert: String(data?.isReAlert) === 'true',
+            repeatCount: data?.repeatCount ? Number(data.repeatCount) : 0,
+            originalTargetTime: data?.originalTargetTime ? Number(data.originalTargetTime) : undefined,
           });
         }
       } else if (data?.type === 'medication') {
@@ -311,6 +347,8 @@ export const notificationService = {
           useAlarmRingingStore.getState().snoozeAlarm(15);
         } else if (actionIdentifier === 'TAKE_MEDICATION') {
           useAlarmRingingStore.getState().takeMedicationDose();
+        } else if (actionIdentifier === 'DISMISS_ALARM') {
+          useAlarmRingingStore.getState().dismissAlarm();
         } else {
           useAlarmRingingStore.getState().triggerAlarm({
             babyId: data.babyId as string | undefined,
@@ -320,6 +358,9 @@ export const notificationService = {
             medicationId: data.medicationId as string | undefined,
             medicationName: data.medicationName as string | undefined,
             dosage: data.dosage as string | undefined,
+            isReAlert: String(data?.isReAlert) === 'true',
+            repeatCount: data?.repeatCount ? Number(data.repeatCount) : 0,
+            originalTargetTime: data?.originalTargetTime ? Number(data.originalTargetTime) : undefined,
           });
         }
       }
@@ -396,6 +437,9 @@ export const notificationService = {
             soundName,
             babyName,
             babyId: options?.babyId || '',
+            isReAlert: 'false',
+            repeatCount: '0',
+            originalTargetTime: String(targetTime),
           },
           android: {
             channelId,
@@ -429,6 +473,12 @@ export const notificationService = {
                     title: i18n.t('alarms.snooze', { defaultValue: 'Snooze (+15m)' }),
                     pressAction: {
                       id: 'SNOOZE_ALARM',
+                    },
+                  },
+                  {
+                    title: i18n.t('alarms.dismissShort', { defaultValue: 'Dismiss' }),
+                    pressAction: {
+                      id: 'DISMISS_ALARM',
                     },
                   },
                 ]
@@ -559,6 +609,9 @@ export const notificationService = {
             medicationId: options?.medicationId || '',
             medicationName,
             dosage: options?.dosage || '',
+            isReAlert: 'false',
+            repeatCount: '0',
+            originalTargetTime: String(targetTime),
           },
           android: {
             channelId,
@@ -589,15 +642,21 @@ export const notificationService = {
                     },
                   },
                   {
+                    title: i18n.t('alarms.silence', { defaultValue: 'Silence' }),
+                    pressAction: {
+                      id: 'SILENCE_ALARM',
+                    },
+                  },
+                  {
                     title: i18n.t('alarms.snooze', { defaultValue: 'Snooze (+15m)' }),
                     pressAction: {
                       id: 'SNOOZE_ALARM',
                     },
                   },
                   {
-                    title: i18n.t('alarms.silence', { defaultValue: 'Silence' }),
+                    title: i18n.t('alarms.dismissShort', { defaultValue: 'Dismiss' }),
                     pressAction: {
-                      id: 'SILENCE_ALARM',
+                      id: 'DISMISS_ALARM',
                     },
                   },
                 ]
@@ -631,6 +690,9 @@ export const notificationService = {
             medicationId: options?.medicationId,
             medicationName,
             dosage: options?.dosage,
+            isReAlert: 'false',
+            repeatCount: '0',
+            originalTargetTime: String(targetTime),
           },
         },
         trigger: {
@@ -641,6 +703,150 @@ export const notificationService = {
       });
 
       return { notificationId: expoId, targetTime };
+    }
+  },
+
+  async scheduleReAlertAlarm(params: {
+    type: 'feeding' | 'medication';
+    babyName: string;
+    babyId?: string;
+    soundName?: string;
+    repeatCount?: number;
+    originalTargetTime?: number;
+    medicationId?: string;
+    medicationName?: string;
+    dosage?: string;
+    intervalMinutes?: number;
+  }): Promise<{ notificationId: string; targetTime: number } | null> {
+    const preferences = usePreferencesStore.getState();
+    if (!preferences.alarmNaggingEnabled) {
+      return null;
+    }
+
+    const currentCount = params.repeatCount ?? 0;
+    const maxRepeats = preferences.alarmNaggingMaxRepeats;
+    if (maxRepeats !== null && currentCount >= maxRepeats) {
+      return null;
+    }
+
+    const intervalMinutes = params.intervalMinutes || preferences.alarmNaggingInterval || 5;
+    const targetTime = Date.now() + intervalMinutes * 60 * 1000;
+    const nextRepeatCount = currentCount + 1;
+    const soundName = params.soundName || preferences.alarmSound || 'default';
+    const isMedication = params.type === 'medication';
+
+    await this.setupChannels(soundName);
+    await this.requestPermissions();
+
+    const channelId = isMedication ? 'medication-alarms' : 'feeding-alarms';
+    const idKey = isMedication && params.medicationId ? params.medicationId : params.babyId || 'default';
+    const notificationId = `realert-${params.type}-${idKey}-${Date.now()}`;
+
+    const title = isMedication
+      ? i18n.t('alarms.reAlertMedicationTitle', { defaultValue: '💊 Medication Reminder (Repeat)' })
+      : i18n.t('alarms.reAlertFeedingTitle', { defaultValue: '🍼 Feeding Reminder (Repeat)' });
+
+    const body = isMedication
+      ? i18n.t('alarms.reAlertMedicationBody', {
+          babyName: params.babyName || 'Baby',
+          medication: (params.medicationName || 'Medication') + (params.dosage ? ` (${params.dosage})` : ''),
+          defaultValue: `Dose not logged yet: ${params.medicationName || 'Medication'} for ${params.babyName || 'Baby'}.`,
+        })
+      : i18n.t('alarms.reAlertFeedingBody', {
+          babyName: params.babyName || 'Baby',
+          defaultValue: `Feeding not logged yet for ${params.babyName || 'Baby'}. Time to feed!`,
+        });
+
+    const trigger: TimestampTrigger = {
+      type: TriggerType.TIMESTAMP,
+      timestamp: targetTime,
+      alarmManager: {
+        type: AlarmType.SET_ALARM_CLOCK,
+      },
+    };
+
+    const actions = isMedication
+      ? [
+          {
+            title: i18n.t('medications.takeDose', { defaultValue: 'Take Dose' }),
+            pressAction: { id: 'TAKE_MEDICATION' },
+          },
+          {
+            title: i18n.t('alarms.silence', { defaultValue: 'Silence' }),
+            pressAction: { id: 'SILENCE_ALARM' },
+          },
+          {
+            title: i18n.t('alarms.snooze', { defaultValue: 'Snooze (+15m)' }),
+            pressAction: { id: 'SNOOZE_ALARM' },
+          },
+          {
+            title: i18n.t('alarms.dismissShort', { defaultValue: 'Dismiss' }),
+            pressAction: { id: 'DISMISS_ALARM' },
+          },
+        ]
+      : [
+          {
+            title: i18n.t('alarms.silence', { defaultValue: 'Silence' }),
+            pressAction: { id: 'SILENCE_ALARM' },
+          },
+          {
+            title: i18n.t('alarms.snooze', { defaultValue: 'Snooze (+15m)' }),
+            pressAction: { id: 'SNOOZE_ALARM' },
+          },
+          {
+            title: i18n.t('alarms.dismissShort', { defaultValue: 'Dismiss' }),
+            pressAction: { id: 'DISMISS_ALARM' },
+          },
+        ];
+
+    try {
+      await notifee.createTriggerNotification(
+        {
+          id: notificationId,
+          title,
+          body,
+          data: {
+            type: params.type,
+            targetTime: String(targetTime),
+            alertMode: 'alarm',
+            soundName,
+            babyName: params.babyName,
+            babyId: params.babyId || '',
+            medicationId: params.medicationId || '',
+            medicationName: params.medicationName || '',
+            dosage: params.dosage || '',
+            isReAlert: 'true',
+            repeatCount: String(nextRepeatCount),
+            originalTargetTime: String(params.originalTargetTime || targetTime),
+          },
+          android: {
+            channelId,
+            category: AndroidCategory.ALARM,
+            importance: AndroidImportance.HIGH,
+            sound: soundFileMapping(soundName),
+            loopSound: true,
+            asForegroundService: true,
+            ongoing: true,
+            autoCancel: false,
+            visibility: AndroidVisibility.PUBLIC,
+            fullScreenAction: {
+              id: 'default',
+              launchActivity: 'default',
+            },
+            pressAction: {
+              id: 'default',
+              launchActivity: 'default',
+            },
+            actions,
+          },
+        },
+        trigger
+      );
+
+      return { notificationId, targetTime };
+    } catch (e) {
+      console.warn('[notificationService] Failed to schedule re-alert notification:', e);
+      return null;
     }
   },
 
@@ -736,6 +942,30 @@ export const notificationService = {
 
     try {
       await Notifications.cancelScheduledNotificationAsync(notificationId);
+    } catch {
+      // Ignored
+    }
+  },
+
+  async cancelMedicationReAlerts(medicationId: string): Promise<void> {
+    try {
+      const triggerIds = await notifee.getTriggerNotificationIds();
+      for (const id of triggerIds) {
+        if (id.includes(medicationId)) {
+          await this.cancelNotification(id);
+        }
+      }
+      const displayed = await notifee.getDisplayedNotifications();
+      for (const item of displayed) {
+        if (
+          (item.notification.id && item.notification.id.includes(medicationId)) ||
+          item.notification.data?.medicationId === medicationId
+        ) {
+          if (item.notification.id) {
+            await notifee.cancelNotification(item.notification.id);
+          }
+        }
+      }
     } catch {
       // Ignored
     }

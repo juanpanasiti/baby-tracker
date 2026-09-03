@@ -5,15 +5,58 @@ import { initDatabase } from './src/db/client';
 
 import App from './App';
 
-// Handle background notification actions (Silence, Snooze, Take Dose) when app is minimized or killed
+// Handle background notification actions (Silence, Snooze, Take Dose, Dismiss) when app is minimized or killed
 notifee.onBackgroundEvent(async ({ type, detail }) => {
   const { notification, pressAction } = detail;
 
   if (type === EventType.ACTION_PRESS) {
     const actionId = pressAction?.id;
+    const data = notification?.data;
 
     if (actionId === 'SILENCE_ALARM') {
+      try {
+        await initDatabase();
+      } catch {
+        // Ignored if already initialized
+      }
+
+      // Populate store with notification metadata if app was cold-started in background
+      if (data?.type) {
+        useAlarmRingingStore.setState({
+          ringingBabyId: (data.babyId as string) || null,
+          ringingBabyName: (data.babyName as string) || null,
+          ringingSound: (data.soundName as string) || 'default',
+          alarmType: (data.type as 'feeding' | 'medication') || 'feeding',
+          medicationId: (data.medicationId as string) || undefined,
+          medicationName: (data.medicationName as string) || undefined,
+          dosage: (data.dosage as string) || undefined,
+          isReAlert: String(data.isReAlert) === 'true',
+          repeatCount: data.repeatCount ? Number(data.repeatCount) : 0,
+          originalTargetTime: data.originalTargetTime ? Number(data.originalTargetTime) : undefined,
+        });
+      }
+
       await useAlarmRingingStore.getState().silenceAlarm();
+      if (notification?.id) {
+        await notifee.cancelNotification(notification.id);
+      }
+    } else if (actionId === 'DISMISS_ALARM') {
+      try {
+        await initDatabase();
+      } catch {
+        // Ignored if already initialized
+      }
+
+      if (data?.type) {
+        useAlarmRingingStore.setState({
+          ringingBabyId: (data.babyId as string) || null,
+          ringingBabyName: (data.babyName as string) || null,
+          alarmType: (data.type as 'feeding' | 'medication') || 'feeding',
+          medicationId: (data.medicationId as string) || undefined,
+        });
+      }
+
+      await useAlarmRingingStore.getState().dismissAlarm();
       if (notification?.id) {
         await notifee.cancelNotification(notification.id);
       }
@@ -22,6 +65,14 @@ notifee.onBackgroundEvent(async ({ type, detail }) => {
         await initDatabase();
       } catch {
         // Ignored if already initialized
+      }
+      if (data?.type) {
+        useAlarmRingingStore.setState({
+          ringingBabyId: (data.babyId as string) || null,
+          ringingBabyName: (data.babyName as string) || null,
+          alarmType: (data.type as 'feeding' | 'medication') || 'feeding',
+          medicationId: (data.medicationId as string) || undefined,
+        });
       }
       await useAlarmRingingStore.getState().snoozeAlarm(15);
       if (notification?.id) {
@@ -32,6 +83,11 @@ notifee.onBackgroundEvent(async ({ type, detail }) => {
         await initDatabase();
       } catch {
         // Ignored if already initialized
+      }
+      if (data?.medicationId) {
+        useAlarmRingingStore.setState({
+          medicationId: data.medicationId as string,
+        });
       }
       await useAlarmRingingStore.getState().takeMedicationDose();
       if (notification?.id) {
