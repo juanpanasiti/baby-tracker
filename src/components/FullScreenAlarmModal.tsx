@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Bell, Clock, Milk, Moon, Volume2, X, Pill } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAlarmRingingStore } from '../store/useAlarmRingingStore';
 import { useBabyStore } from '../store/useBabyStore';
 import { useFeedingStore } from '../store/useFeedingStore';
@@ -18,6 +19,9 @@ import { usePreferencesStore, ALARM_SOUNDS } from '../store/usePreferencesStore'
 
 export function FullScreenAlarmModal() {
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
+  const topPadding = Math.max(insets.top + 16, 44);
+  const bottomPadding = Math.max(insets.bottom + 20, 32);
   const {
     isAlarmRinging,
     ringingBabyName,
@@ -129,7 +133,7 @@ export function FullScreenAlarmModal() {
       onRequestClose={handleSilenceOnly}
     >
       <StatusBar barStyle="light-content" backgroundColor="#0F172A" />
-      <View style={styles.container}>
+      <View style={[styles.container, { paddingTop: topPadding, paddingBottom: bottomPadding }]}>
         {/* Background ambient glow */}
         <View
           style={[
@@ -275,8 +279,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#0F172A', // Slate-900 high contrast dark
     justifyContent: 'space-between',
     paddingHorizontal: 24,
-    paddingTop: 54,
-    paddingBottom: 40,
   },
   glowCircle: {
     position: 'absolute',

@@ -2,7 +2,7 @@
   "expo": {
     "name": "Baby Care",
     "slug": "baby-tracker",
-    "version": "1.6.1",
+    "version": "1.6.2",
     "scheme": "babycare",
     "orientation": "portrait",
     "icon": "./assets/icon.png",

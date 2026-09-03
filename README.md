@@ -42,7 +42,8 @@ Baby Care helps parents and caregivers log and monitor essential baby routines w
 - **Language**: TypeScript (strictly typed, `noImplicitAny`)
 - **Database & Storage**: `expo-sqlite` + `drizzle-orm` (type-safe SQLite persistence)
 - **State Management**: `zustand` + `@react-native-async-storage/async-storage`
-- **Native Integrations**:
+- **Native Integrations & UI**:
+  - `react-native-safe-area-context`: Cross-platform safe area and dynamic window insets management (status bar, notch, and Android 3-button/gesture navigation bars)
   - `@notifee/react-native`: Android persistent alarm clock engine, infinite audio looping (`loopSound`), lockscreen wakeup (`USE_FULL_SCREEN_INTENT`), and background action handlers (`onBackgroundEvent`)
   - `@react-native-community/datetimepicker`: Native OS date and time picker dialogs (Android Material & iOS modal)
   - `expo-notifications`: High-priority local push notifications & appointment reminders

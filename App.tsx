@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import {
-  SafeAreaView,
   View,
   Text,
   StyleSheet,
@@ -8,6 +7,7 @@ import {
   ActivityIndicator,
   AppState,
 } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import './src/i18n'; // Initialize i18n
 import { initDatabase } from './src/db/client';
 import { useThemeStore } from './src/store/useThemeStore';
@@ -100,49 +100,56 @@ export default function App() {
 
   if (!isReady) {
     return (
-      <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading Baby Care...</Text>
-      </View>
+      <SafeAreaProvider>
+        <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading Baby Care...</Text>
+        </View>
+      </SafeAreaProvider>
     );
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <StatusBar
-        barStyle={themeMode === 'dark' ? 'light-content' : 'dark-content'}
-        backgroundColor={colors.background}
-      />
+    <SafeAreaProvider>
+      <SafeAreaView
+        style={[styles.container, { backgroundColor: colors.background }]}
+        edges={['top']}
+      >
+        <StatusBar
+          barStyle={themeMode === 'dark' ? 'light-content' : 'dark-content'}
+          backgroundColor={colors.background}
+        />
 
-      {/* Screen Content */}
-      <View style={styles.screenContainer}>
-        {activeTab === 'dashboard' && (
-          <DashboardScreen
-            onNavigateToTimeline={() => setActiveTab('timeline')}
-            onNavigateToMedications={() => setActiveTab('medications')}
-            onNavigateToAppointments={() => setActiveTab('appointments')}
-          />
-        )}
-        {activeTab === 'timeline' && <TimelineScreen />}
-        {activeTab === 'medications' && <MedicationsScreen />}
-        {activeTab === 'appointments' && <AppointmentsScreen />}
-        {activeTab === 'settings' && <SettingsScreen />}
-      </View>
+        {/* Screen Content */}
+        <View style={styles.screenContainer}>
+          {activeTab === 'dashboard' && (
+            <DashboardScreen
+              onNavigateToTimeline={() => setActiveTab('timeline')}
+              onNavigateToMedications={() => setActiveTab('medications')}
+              onNavigateToAppointments={() => setActiveTab('appointments')}
+            />
+          )}
+          {activeTab === 'timeline' && <TimelineScreen />}
+          {activeTab === 'medications' && <MedicationsScreen />}
+          {activeTab === 'appointments' && <AppointmentsScreen />}
+          {activeTab === 'settings' && <SettingsScreen />}
+        </View>
 
-      {/* Bottom Navigation */}
-      <BottomNavBar activeTab={activeTab} onTabChange={setActiveTab} />
+        {/* Bottom Navigation */}
+        <BottomNavBar activeTab={activeTab} onTabChange={setActiveTab} />
 
-      {/* Global Modals */}
-      <ProfileModal />
-      <FeedingModal />
-      <FeedingReminderPrompt />
-      <EditReminderModal />
-      <DiaperModal />
-      <AppointmentModal />
-      <MedicationModal />
-      <LogDoseModal />
-      <FullScreenAlarmModal />
-    </SafeAreaView>
+        {/* Global Modals */}
+        <ProfileModal />
+        <FeedingModal />
+        <FeedingReminderPrompt />
+        <EditReminderModal />
+        <DiaperModal />
+        <AppointmentModal />
+        <MedicationModal />
+        <LogDoseModal />
+        <FullScreenAlarmModal />
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 
