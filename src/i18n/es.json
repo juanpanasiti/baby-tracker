@@ -1,5 +1,6 @@
 {
   "common": {
+    "add": "Agregar",
     "save": "Guardar",
     "cancel": "Cancelar",
     "delete": "Eliminar",
@@ -31,6 +32,15 @@
     "medications": "Medicamentos",
     "appointments": "Turnos",
     "settings": "Ajustes"
+  },
+  "timeline": {
+    "title": "Historial",
+    "filters": {
+      "all": "Todos",
+      "feedings": "Tomas",
+      "diapers": "Pañales",
+      "medications": "Medicamentos"
+    }
   },
   "profile": {
     "title": "Perfil del Bebé",

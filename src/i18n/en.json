@@ -1,5 +1,6 @@
 {
   "common": {
+    "add": "Add",
     "save": "Save",
     "cancel": "Cancel",
     "delete": "Delete",
@@ -31,6 +32,15 @@
     "medications": "Medications",
     "appointments": "Appointments",
     "settings": "Settings"
+  },
+  "timeline": {
+    "title": "Timeline",
+    "filters": {
+      "all": "All",
+      "feedings": "Feedings",
+      "diapers": "Diapers",
+      "medications": "Medications"
+    }
   },
   "profile": {
     "title": "Baby Profile",

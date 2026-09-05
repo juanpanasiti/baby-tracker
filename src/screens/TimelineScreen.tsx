@@ -5,6 +5,7 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
+  ScrollView,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useThemeStore } from '../store/useThemeStore';
@@ -42,16 +43,21 @@ export function TimelineScreen() {
   });
 
   const filterTabs: { key: FilterType; label: string; count: number }[] = [
-    { key: 'all', label: 'All', count: allActivities.length },
-    { key: 'feedings', label: t('feeding.title'), count: feedings.length },
-    { key: 'diapers', label: t('diaper.title'), count: diapers.length },
-    { key: 'medications', label: t('medications.title'), count: medicationLogs.length },
+    { key: 'all', label: t('timeline.filters.all', { defaultValue: 'All' }), count: allActivities.length },
+    { key: 'feedings', label: t('timeline.filters.feedings', { defaultValue: 'Feedings' }), count: feedings.length },
+    { key: 'diapers', label: t('timeline.filters.diapers', { defaultValue: 'Diapers' }), count: diapers.length },
+    { key: 'medications', label: t('timeline.filters.medications', { defaultValue: 'Medications' }), count: medicationLogs.length },
   ];
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Filters */}
-      <View style={styles.filtersRow}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.filtersRow}
+        style={styles.filtersScrollView}
+      >
         {filterTabs.map((tab) => {
           const isActive = filter === tab.key;
           return (
@@ -80,7 +86,7 @@ export function TimelineScreen() {
             </TouchableOpacity>
           );
         })}
-      </View>
+      </ScrollView>
 
       {/* Activities List */}
       <FlatList
@@ -124,6 +130,9 @@ export function TimelineScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  filtersScrollView: {
+    flexGrow: 0,
   },
   filtersRow: {
     flexDirection: 'row',

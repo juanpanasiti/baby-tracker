@@ -15,6 +15,7 @@ export interface ThemeColors {
   success: string;
   warning: string;
   danger: string;
+  error: string;
   info: string;
   // Domain colors
   breastfeeding: string;
@@ -43,6 +44,7 @@ export const darkTheme: ThemeColors = {
   success: '#10B981', // Emerald 500
   warning: '#F59E0B', // Amber 500
   danger: '#EF4444',  // Red 500
+  error: '#EF4444',
   info: '#38BDF8',    // Sky 400
   breastfeeding: '#F472B6', // Pink
   bottle: '#60A5FA',        // Blue
@@ -70,6 +72,7 @@ export const lightTheme: ThemeColors = {
   success: '#059669', // Emerald 600
   warning: '#D97706', // Amber 600
   danger: '#DC2626',  // Red 600
+  error: '#DC2626',
   info: '#0284C7',    // Sky 600
   breastfeeding: '#EC4899',
   bottle: '#3B82F6',

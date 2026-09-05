@@ -113,7 +113,7 @@ export function AppointmentsScreen() {
           onPress={() => openAppointmentModal()}
         >
           <Plus size={18} color="#FFF" />
-          <Text style={styles.addButtonText}>{t('common.add') || 'Add'}</Text>
+          <Text style={styles.addButtonText}>{t('common.add', { defaultValue: 'Add' })}</Text>
         </TouchableOpacity>
       </View>
 
