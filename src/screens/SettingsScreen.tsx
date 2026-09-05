@@ -23,7 +23,10 @@ import {
   Volume2,
   Sparkles,
   RotateCcw,
+  Scale,
+  TrendingUp,
 } from 'lucide-react-native';
+
 import {
   usePreferencesStore,
   ALARM_SOUNDS,
@@ -50,7 +53,12 @@ export function SettingsScreen() {
     setAlarmNaggingInterval,
     alarmNaggingMaxRepeats,
     setAlarmNaggingMaxRepeats,
+    showGrowthInProfile,
+    setShowGrowthInProfile,
+    showGrowthGain,
+    setShowGrowthGain,
   } = usePreferencesStore();
+
 
   const [isSoundSelectorOpen, setIsSoundSelectorOpen] = React.useState(false);
   const isDark = themeMode === 'dark';
@@ -278,10 +286,64 @@ export function SettingsScreen() {
         )}
       </View>
 
+      {/* Growth Tracking Section */}
+      <Text style={[styles.sectionTitle, { color: colors.textSecondary, marginTop: 24 }]}>
+        {t('settings.growthTracking')}
+      </Text>
+      <View style={[styles.cardColumn, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+        {/* Show Growth in Profile */}
+        <View style={[styles.langRow, { borderBottomColor: colors.cardBorder }]}>
+          <View style={[styles.rowLeft, { flex: 1, paddingRight: 10 }]}>
+            <View style={[styles.iconBg, { backgroundColor: colors.primary + '20' }]}>
+              <Scale size={20} color={colors.primary} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.cardTitle, { color: colors.text }]}>
+                {t('settings.showGrowthInProfile')}
+              </Text>
+              <Text style={[styles.cardSubtitle, { color: colors.textMuted }]}>
+                {t('settings.showGrowthInProfileSub')}
+              </Text>
+            </View>
+          </View>
+          <Switch
+            value={showGrowthInProfile}
+            onValueChange={setShowGrowthInProfile}
+            trackColor={{ false: colors.surfaceSubtle, true: colors.primary }}
+            thumbColor="#FFF"
+          />
+        </View>
+
+        {/* Show Growth Delta Gain/Loss */}
+        <View style={[styles.langRow, { borderBottomWidth: 0 }]}>
+          <View style={[styles.rowLeft, { flex: 1, paddingRight: 10 }]}>
+            <View style={[styles.iconBg, { backgroundColor: '#10B98120' }]}>
+              <TrendingUp size={20} color="#10B981" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.cardTitle, { color: colors.text }]}>
+                {t('settings.showGrowthGain')}
+              </Text>
+              <Text style={[styles.cardSubtitle, { color: colors.textMuted }]}>
+                {t('settings.showGrowthGainSub')}
+              </Text>
+            </View>
+          </View>
+          <Switch
+            value={showGrowthGain}
+            onValueChange={setShowGrowthGain}
+            trackColor={{ false: colors.surfaceSubtle, true: colors.primary }}
+            thumbColor="#FFF"
+          />
+        </View>
+      </View>
+
+
       {/* Appearance / Theme */}
       <Text style={[styles.sectionTitle, { color: colors.textSecondary, marginTop: 24 }]}>
         {t('settings.appearance')}
       </Text>
+
       <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
         <View style={styles.rowLeft}>
           <View style={[styles.iconBg, { backgroundColor: isDark ? colors.primary + '20' : colors.warning + '20' }]}>

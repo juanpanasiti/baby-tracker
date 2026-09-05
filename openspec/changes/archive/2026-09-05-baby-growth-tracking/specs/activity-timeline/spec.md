@@ -1,8 +1,4 @@
-## Purpose
-
-Provides a chronological activity history for all baby care events (feedings, diaper changes, medication logs, and growth measurements) with horizontally scrollable, localized category filters.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Horizontally Scrollable Activity Filter Bar
 The system SHALL render category filter chips (`All`, `Feedings`, `Diapers`, `Medications`, `Growth`) in a horizontally scrollable view that allows users to access all filter options regardless of device width, screen scaling, or translation string length.
@@ -21,6 +17,8 @@ The system SHALL display localized and concise labels for each activity filter c
 #### Scenario: Viewing timeline filters in Spanish
 - **WHEN** the active language is set to Spanish
 - **THEN** the filter chips SHALL display "Todos", "Tomas", "Pañales", "Medicamentos", and "Crecimiento" alongside their respective counts
+
+## ADDED Requirements
 
 ### Requirement: Growth Activity Timeline Events
 The system SHALL render growth records within the unified chronological activity timeline, displaying weight, optional height, optional notes, and edit and delete action controls.

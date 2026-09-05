@@ -21,10 +21,17 @@ Baby Care helps parents and caregivers log and monitor essential baby routines w
   - **Treatment Lifecycle**: Mark treatments as active, paused, or finished without losing administration history.
   - **Dual Alert Modes**: Choose between standard notification chimes or insistent loud alarms with full-screen lockscreen intent and continuous looping sound.
   - **Dedicated Medications Screen & Quick Logging**: 5th tab in bottom navigation with active treatments, upcoming dose countdowns, quick "+ Log Dose" modal, and direct dashboard integration with 1-tap "Mark as Taken" and postpone buttons.
+- **Growth Tracking**:
+
+  - **Weight & Height Logging**: Record infant weight (in kg) and optional height/length (in cm) with native date/time pickers and optional notes.
+  - **Progression & Gain Calculations**: Automatically computes weight gain/loss (in grams) and height differences relative to the preceding chronological measurement.
+  - **Interactive Profile Header**: Displays latest recorded weight and elapsed time directly on the Dashboard with 1-tap access to the Growth History sheet.
+  - **Configurable Settings**: User preferences in Settings to toggle growth visibility on the profile card and show/hide incremental gain calculations.
+  - **Timeline Integration**: Growth records appear in the chronological timeline with edit/delete actions and a dedicated `Growth` filter chip.
 - **Diaper Changes**: Track diaper events (pee, poop, or both), rash indicators, custom timestamps, and care notes.
 - **Timeline & History Editing**:
-  - Reverse chronological timeline with filter tabs for all events, feedings, diapers, or medications.
-  - Full inline editing support: tap the edit pencil icon on any feeding or diaper log to update timestamp, amounts, duration, sides, rash status, or notes.
+  - Reverse chronological timeline with filter tabs for all events, feedings, diapers, medications, or growth.
+  - Full inline editing support: tap the edit pencil icon on any feeding, diaper, or growth log to update timestamp, amounts, duration, sides, rash status, or notes.
 - **Appointments & Calendar Management**:
   - Multi-category appointment scheduling: **Medical** (pediatrician/specialist checkups with doctor name and specialty), **Vaccines** (scheduled vaccination doses), **Administrative** (DNI, passport, insurance paperwork), and **Other** (nursery, stimulation sessions).
   - Dynamic form inputs: displays relevant doctor/specialty fields for medical visits while keeping clean, minimal inputs for vaccines and administrative tasks.
@@ -36,6 +43,7 @@ Baby Care helps parents and caregivers log and monitor essential baby routines w
   - **Localization**: English (default) and Spanish, persisted locally.
   - **Alarm Sound Customization**: Configurable alarm ringtone (System default, Digital clock, Gentle chimes, Soft bells, Lullaby harp) with bundled high-quality `.wav` audio assets and test preview.
   - **Smart Night Mode**: Optional automatic suggestion that preselects Loud Alarm mode during nighttime hours (22:00 to 07:00).
+
 
 ## Tech Stack
 
@@ -71,22 +79,25 @@ Baby Care helps parents and caregivers log and monitor essential baby routines w
 │   │   ├── FeedingModal.tsx       # Breast & bottle feeding logger & editor
 │   │   ├── FeedingReminderPrompt.tsx # Next feeding alarm scheduler
 │   │   ├── FullScreenAlarmModal.tsx # Full-screen ringing alarm with pulse animation & snooze
+│   │   ├── GrowthHistoryModal.tsx # Historical growth progression with delta calculations
+│   │   ├── GrowthModal.tsx        # Growth weight & height logger & editor
 │   │   ├── LogDoseModal.tsx       # Quick medication dose logger
 │   │   ├── MedicationModal.tsx    # Medication & treatment schedule creator/editor
-│   │   ├── ProfileHeader.tsx      # Baby info & age calculation banner
+│   │   ├── ProfileHeader.tsx      # Baby info, age & growth summary banner
 │   │   ├── ProfileModal.tsx       # Baby profile creation & editor
 │   │   ├── QuickActionButton.tsx  # 1-tap quick action buttons
 │   │   └── TimelineItem.tsx       # Interactive activity card with edit & delete
 │   ├── db/
 │   │   ├── client.ts              # SQLite database client & table init
 │   │   ├── schema.ts              # Drizzle ORM schema & types
-│   │   └── repositories/          # Type-safe CRUD repositories
+│   │   └── repositories/          # Type-safe CRUD repositories (baby, feeding, diaper, appointment, medication, growth)
 │   ├── i18n/                      # English & Spanish translations
 │   ├── screens/                   # Main screens (Dashboard, Timeline, Medications, Appointments, Settings)
 │   ├── services/                  # Notification, Alarm Audio & Calendar native services
-│   ├── store/                     # Zustand stores (Theme, Locale, Baby, Feeding, Diaper, Appointment, Medication, AlarmRinging)
+│   ├── store/                     # Zustand stores (Theme, Locale, Baby, Feeding, Diaper, Appointment, Medication, Growth, Preferences)
 │   ├── theme/                     # Dark & Light color palettes
-│   └── utils/                     # Age calculation, ID generator, schedule & date formatters
+│   └── utils/                     # Growth deltas, age calculation, ID generator, schedule & date formatters
+
 └── openspec/                      # Specification & change proposals
 ```
 

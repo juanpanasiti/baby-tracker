@@ -19,6 +19,7 @@ import { useAppointmentStore } from './src/store/useAppointmentStore';
 
 import { usePreferencesStore } from './src/store/usePreferencesStore';
 import { useMedicationStore } from './src/store/useMedicationStore';
+import { useGrowthStore } from './src/store/useGrowthStore';
 import { notificationService } from './src/services/notificationService';
 import { DashboardScreen } from './src/screens/DashboardScreen';
 import { TimelineScreen } from './src/screens/TimelineScreen';
@@ -36,6 +37,8 @@ import { AppointmentModal } from './src/components/AppointmentModal';
 import { MedicationModal } from './src/components/MedicationModal';
 import { LogDoseModal } from './src/components/LogDoseModal';
 import { FullScreenAlarmModal } from './src/components/FullScreenAlarmModal';
+import { GrowthModal } from './src/components/GrowthModal';
+import { GrowthHistoryModal } from './src/components/GrowthHistoryModal';
 
 export default function App() {
   const [isReady, setIsReady] = useState(false);
@@ -48,6 +51,7 @@ export default function App() {
   const { loadDiaperStore } = useDiaperStore.getState() ? { loadDiaperStore: useDiaperStore.getState().loadDiapers } : { loadDiaperStore: () => Promise.resolve() };
   const { loadAppointments } = useAppointmentStore();
   const { loadMedications, loadMedicationLogs } = useMedicationStore();
+  const { loadGrowthRecords } = useGrowthStore();
 
   useEffect(() => {
     async function prepare() {
@@ -82,8 +86,10 @@ export default function App() {
       loadAppointments(baby.id);
       loadMedications(baby.id);
       loadMedicationLogs(baby.id);
+      loadGrowthRecords(baby.id);
     }
   }, [baby]);
+
 
   // Sync and clean up stale reminders whenever app returns to active/foreground
   useEffect(() => {
@@ -148,7 +154,11 @@ export default function App() {
         <MedicationModal />
         <LogDoseModal />
         <FullScreenAlarmModal />
+        <GrowthModal />
+        <GrowthHistoryModal />
       </SafeAreaView>
+
+
     </SafeAreaProvider>
   );
 }

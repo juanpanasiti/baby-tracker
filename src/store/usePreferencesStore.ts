@@ -22,6 +22,8 @@ const SMART_NIGHT_MODE_KEY = '@baby_tracker_smart_night_mode';
 const ALARM_NAGGING_ENABLED_KEY = '@baby_tracker_alarm_nagging_enabled';
 const ALARM_NAGGING_INTERVAL_KEY = '@baby_tracker_alarm_nagging_interval';
 const ALARM_NAGGING_MAX_REPEATS_KEY = '@baby_tracker_alarm_nagging_max_repeats';
+const SHOW_GROWTH_IN_PROFILE_KEY = '@baby_tracker_show_growth_in_profile';
+const SHOW_GROWTH_GAIN_KEY = '@baby_tracker_show_growth_gain';
 
 interface PreferencesState {
   alarmSound: AlarmSoundId;
@@ -29,6 +31,8 @@ interface PreferencesState {
   alarmNaggingEnabled: boolean;
   alarmNaggingInterval: AlarmNaggingInterval;
   alarmNaggingMaxRepeats: AlarmNaggingMaxRepeats;
+  showGrowthInProfile: boolean;
+  showGrowthGain: boolean;
   isLoaded: boolean;
 
   setAlarmSound: (sound: AlarmSoundId) => Promise<void>;
@@ -36,6 +40,8 @@ interface PreferencesState {
   setAlarmNaggingEnabled: (enabled: boolean) => Promise<void>;
   setAlarmNaggingInterval: (interval: AlarmNaggingInterval) => Promise<void>;
   setAlarmNaggingMaxRepeats: (maxRepeats: AlarmNaggingMaxRepeats) => Promise<void>;
+  setShowGrowthInProfile: (enabled: boolean) => Promise<void>;
+  setShowGrowthGain: (enabled: boolean) => Promise<void>;
   loadPreferences: () => Promise<void>;
   isNightTime: (timestamp?: number) => boolean;
 }
@@ -46,6 +52,8 @@ export const usePreferencesStore = create<PreferencesState>((set, get) => ({
   alarmNaggingEnabled: true,
   alarmNaggingInterval: 5,
   alarmNaggingMaxRepeats: null,
+  showGrowthInProfile: true,
+  showGrowthGain: true,
   isLoaded: false,
 
   setAlarmSound: async (sound: AlarmSoundId) => {
@@ -73,16 +81,35 @@ export const usePreferencesStore = create<PreferencesState>((set, get) => ({
     set({ alarmNaggingMaxRepeats: maxRepeats });
   },
 
+  setShowGrowthInProfile: async (enabled: boolean) => {
+    await AsyncStorage.setItem(SHOW_GROWTH_IN_PROFILE_KEY, JSON.stringify(enabled));
+    set({ showGrowthInProfile: enabled });
+  },
+
+  setShowGrowthGain: async (enabled: boolean) => {
+    await AsyncStorage.setItem(SHOW_GROWTH_GAIN_KEY, JSON.stringify(enabled));
+    set({ showGrowthGain: enabled });
+  },
+
   loadPreferences: async () => {
     try {
-      const [savedSound, savedNightMode, savedNaggingEnabled, savedNaggingInterval, savedNaggingMaxRepeats] =
-        await Promise.all([
-          AsyncStorage.getItem(ALARM_SOUND_STORAGE_KEY),
-          AsyncStorage.getItem(SMART_NIGHT_MODE_KEY),
-          AsyncStorage.getItem(ALARM_NAGGING_ENABLED_KEY),
-          AsyncStorage.getItem(ALARM_NAGGING_INTERVAL_KEY),
-          AsyncStorage.getItem(ALARM_NAGGING_MAX_REPEATS_KEY),
-        ]);
+      const [
+        savedSound,
+        savedNightMode,
+        savedNaggingEnabled,
+        savedNaggingInterval,
+        savedNaggingMaxRepeats,
+        savedShowGrowthInProfile,
+        savedShowGrowthGain,
+      ] = await Promise.all([
+        AsyncStorage.getItem(ALARM_SOUND_STORAGE_KEY),
+        AsyncStorage.getItem(SMART_NIGHT_MODE_KEY),
+        AsyncStorage.getItem(ALARM_NAGGING_ENABLED_KEY),
+        AsyncStorage.getItem(ALARM_NAGGING_INTERVAL_KEY),
+        AsyncStorage.getItem(ALARM_NAGGING_MAX_REPEATS_KEY),
+        AsyncStorage.getItem(SHOW_GROWTH_IN_PROFILE_KEY),
+        AsyncStorage.getItem(SHOW_GROWTH_GAIN_KEY),
+      ]);
 
       set({
         alarmSound: (savedSound as AlarmSoundId) || 'default',
@@ -92,6 +119,10 @@ export const usePreferencesStore = create<PreferencesState>((set, get) => ({
           savedNaggingInterval !== null ? (JSON.parse(savedNaggingInterval) as AlarmNaggingInterval) : 5,
         alarmNaggingMaxRepeats:
           savedNaggingMaxRepeats !== null ? (JSON.parse(savedNaggingMaxRepeats) as AlarmNaggingMaxRepeats) : null,
+        showGrowthInProfile:
+          savedShowGrowthInProfile !== null ? JSON.parse(savedShowGrowthInProfile) : true,
+        showGrowthGain:
+          savedShowGrowthGain !== null ? JSON.parse(savedShowGrowthGain) : true,
         isLoaded: true,
       });
     } catch {

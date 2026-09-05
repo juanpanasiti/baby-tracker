@@ -39,8 +39,10 @@
       "all": "All",
       "feedings": "Feedings",
       "diapers": "Diapers",
-      "medications": "Medications"
+      "medications": "Medications",
+      "growth": "Growth"
     }
+
   },
   "profile": {
     "title": "Baby Profile",
@@ -269,7 +271,33 @@
     "maxRepeats": "Max Repeat Limit",
     "maxRepeatsIndefinite": "Indefinite (Until recorded)",
     "maxRepeatsCount": "{{count}} times",
+    "growthTracking": "Growth Tracking",
+    "showGrowthInProfile": "Show Weight in Profile",
+    "showGrowthInProfileSub": "Display latest weight and elapsed time on dashboard",
+    "showGrowthGain": "Show Growth Difference",
+    "showGrowthGainSub": "Calculate weight and height delta relative to previous measurement",
     "about": "About Baby Care",
     "version": "Version {{version}} (Offline First)"
+  },
+  "growth": {
+    "title": "Growth",
+    "logTitle": "Record Growth",
+    "editTitle": "Edit Growth Record",
+    "historyTitle": "Growth History",
+    "weight": "Weight",
+    "height": "Height / Length",
+    "notesPlaceholder": "e.g. 2-month pediatric checkup, doctor notes...",
+    "logFirstMeasurement": "Log weight",
+    "recordsCount": "{{count}} records",
+    "addMeasurement": "+ New Measurement",
+    "emptyTitle": "No growth records yet",
+    "emptySubtitle": "Record your baby's weight and height to track growth progress over time",
+    "confirmDelete": "Are you sure you want to delete this growth measurement?",
+    "errors": {
+      "invalidWeight": "Please enter a valid positive weight in kg.",
+      "invalidHeight": "Please enter a valid positive height in cm.",
+      "futureDate": "Measurement date cannot be in the future."
+    }
   }
 }
+

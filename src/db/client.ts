@@ -124,7 +124,19 @@ export async function initDatabase(): Promise<void> {
       FOREIGN KEY (baby_id) REFERENCES babies (id) ON DELETE CASCADE,
       FOREIGN KEY (medication_id) REFERENCES medications (id) ON DELETE CASCADE
     );
+
+    CREATE TABLE IF NOT EXISTS growth_records (
+      id TEXT PRIMARY KEY NOT NULL,
+      baby_id TEXT NOT NULL,
+      weight_kg REAL NOT NULL,
+      height_cm REAL,
+      notes TEXT,
+      timestamp INTEGER NOT NULL,
+      created_at INTEGER NOT NULL,
+      FOREIGN KEY (baby_id) REFERENCES babies (id) ON DELETE CASCADE
+    );
   `);
+
 
   // Safe migrations for added columns in reminders and appointments
   try {

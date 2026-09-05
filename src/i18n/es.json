@@ -39,8 +39,10 @@
       "all": "Todos",
       "feedings": "Tomas",
       "diapers": "Pañales",
-      "medications": "Medicamentos"
+      "medications": "Medicamentos",
+      "growth": "Crecimiento"
     }
+
   },
   "profile": {
     "title": "Perfil del Bebé",
@@ -269,7 +271,33 @@
     "maxRepeats": "Límite de Repeticiones",
     "maxRepeatsIndefinite": "Indefinido (Hasta registrar)",
     "maxRepeatsCount": "{{count}} veces",
+    "growthTracking": "Seguimiento de Crecimiento",
+    "showGrowthInProfile": "Mostrar Peso en el Perfil",
+    "showGrowthInProfileSub": "Muestra el último peso y tiempo transcurrido en el inicio",
+    "showGrowthGain": "Mostrar Cálculo de Ganancia",
+    "showGrowthGainSub": "Calcula la diferencia de peso y talla respecto a la medición anterior",
     "about": "Acerca de Baby Care",
     "version": "Versión {{version}} (Offline First)"
+  },
+  "growth": {
+    "title": "Crecimiento",
+    "logTitle": "Registrar Crecimiento",
+    "editTitle": "Editar Medición",
+    "historyTitle": "Historial de Crecimiento",
+    "weight": "Peso",
+    "height": "Talla / Altura",
+    "notesPlaceholder": "ej. Control de los 2 meses con el pediatra...",
+    "logFirstMeasurement": "Registrar peso",
+    "recordsCount": "{{count}} mediciones",
+    "addMeasurement": "+ Nueva Medición",
+    "emptyTitle": "Sin mediciones de crecimiento aún",
+    "emptySubtitle": "Registrá el peso y la talla del bebé para seguir su evolución en el tiempo",
+    "confirmDelete": "¿Seguro que querés eliminar esta medición de crecimiento?",
+    "errors": {
+      "invalidWeight": "Ingresá un peso válido y positivo en kg.",
+      "invalidHeight": "Ingresá una talla válida y positiva en cm.",
+      "futureDate": "La fecha de medición no puede ser en el futuro."
+    }
   }
 }
+

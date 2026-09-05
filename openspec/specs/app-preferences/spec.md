@@ -66,4 +66,15 @@ The system SHALL provide user-configurable preferences for persistent alarm re-a
 - **WHEN** the user selects a maximum repeat limit in Settings (e.g., Indefinite / No limit, 3 times, 5 times, 10 times; default Indefinite)
 - **THEN** the system SHALL persist the preference and enforce the limit when re-arming silenced alarms
 
+### Requirement: Growth Display and Delta Calculation Preferences
+The system SHALL provide configurable toggles in Settings for controlling growth visibility in the profile header and showing or hiding comparative growth gain calculations, persisting all selections locally across app restarts.
+
+#### Scenario: User toggles growth metric visibility in profile header
+- **WHEN** the user enables or disables "Show growth in profile" in Settings
+- **THEN** the system SHALL persist the preference and immediately update the profile card visibility
+
+#### Scenario: User toggles growth gain calculation visibility
+- **WHEN** the user enables or disables "Show growth delta calculations" in Settings
+- **THEN** the system SHALL persist the preference and update growth views to show or hide incremental gains
+
 

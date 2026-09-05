@@ -2,7 +2,7 @@
   "expo": {
     "name": "Baby Care",
     "slug": "baby-tracker",
-    "version": "1.7.1",
+    "version": "1.8.0",
     "scheme": "babycare",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -16,7 +16,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.babycare.app",
-      "buildNumber": "12",
+      "buildNumber": "13",
       "infoPlist": {
         "NSRemindersUsageDescription": "Allow Baby Care to set reminders for baby appointments.",
         "NSCalendarsUsageDescription": "Allow Baby Care to sync appointments with your calendar.",
@@ -25,7 +25,8 @@
     },
     "android": {
       "package": "com.babycare.app",
-      "versionCode": 12,
+      "versionCode": 13,
+
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#121212"

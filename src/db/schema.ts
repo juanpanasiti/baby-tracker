@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, real } from 'drizzle-orm/sqlite-core';
 import { type InferSelectModel, type InferInsertModel } from 'drizzle-orm';
 
 export const babies = sqliteTable('babies', {
@@ -103,6 +103,18 @@ export const medicationLogs = sqliteTable('medication_logs', {
   timestamp: integer('timestamp').notNull(),
 });
 
+export const growthRecords = sqliteTable('growth_records', {
+  id: text('id').primaryKey(),
+  babyId: text('baby_id')
+    .notNull()
+    .references(() => babies.id, { onDelete: 'cascade' }),
+  weightKg: real('weight_kg').notNull(),
+  heightCm: real('height_cm'),
+  notes: text('notes'),
+  timestamp: integer('timestamp').notNull(),
+  createdAt: integer('created_at').notNull(),
+});
+
 export type Baby = InferSelectModel<typeof babies>;
 export type NewBaby = InferInsertModel<typeof babies>;
 
@@ -124,4 +136,8 @@ export type NewMedication = InferInsertModel<typeof medications>;
 
 export type MedicationLog = InferSelectModel<typeof medicationLogs>;
 export type NewMedicationLog = InferInsertModel<typeof medicationLogs>;
+
+export type GrowthRecord = InferSelectModel<typeof growthRecords>;
+export type NewGrowthRecord = InferInsertModel<typeof growthRecords>;
+
 

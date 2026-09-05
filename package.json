@@ -2,8 +2,9 @@
   "name": "baby-care",
   "description": "Baby Care application with React Native and Expo",
   "license": "MIT",
-  "version": "1.7.1",
+  "version": "1.8.0",
   "main": "index.ts",
+
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",

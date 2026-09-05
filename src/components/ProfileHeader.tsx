@@ -3,13 +3,19 @@ import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useThemeStore } from '../store/useThemeStore';
 import { useBabyStore } from '../store/useBabyStore';
-import { calculateBabyAge } from '../utils/date';
-import { Edit2, User, Sparkles } from 'lucide-react-native';
+import { useGrowthStore } from '../store/useGrowthStore';
+import { usePreferencesStore } from '../store/usePreferencesStore';
+import { calculateBabyAge, formatRelativeTime } from '../utils/date';
+import { formatWeight } from '../utils/growth';
+import { Edit2, User, Sparkles, Scale, ChevronRight } from 'lucide-react-native';
 
 export function ProfileHeader() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const colors = useThemeStore((state) => state.colors);
   const { baby, openProfileModal } = useBabyStore();
+  const { latestRecord, openHistoryModal, openGrowthModal } = useGrowthStore();
+  const showGrowthInProfile = usePreferencesStore((state) => state.showGrowthInProfile);
+  const isSpanish = i18n.language.startsWith('es');
 
   if (!baby) {
     return (
@@ -70,9 +76,39 @@ export function ProfileHeader() {
           <Edit2 size={18} color={colors.textMuted} />
         </TouchableOpacity>
       </View>
+
+      {/* Growth Metric Pill */}
+      {showGrowthInProfile && (
+        <TouchableOpacity
+          style={[styles.growthRow, { borderTopColor: colors.cardBorder }]}
+          onPress={latestRecord ? openHistoryModal : () => openGrowthModal(null)}
+          activeOpacity={0.7}
+        >
+          <View style={[styles.growthIconCircle, { backgroundColor: colors.primary + '18' }]}>
+            <Scale size={14} color={colors.primary} />
+          </View>
+          {latestRecord ? (
+            <View style={styles.growthTextContainer}>
+              <Text style={[styles.growthValue, { color: colors.text }]}>
+                {formatWeight(latestRecord.weightKg)}
+              </Text>
+              <Text style={[styles.growthDot, { color: colors.textMuted }]}>•</Text>
+              <Text style={[styles.growthRecency, { color: colors.textSecondary }]}>
+                {formatRelativeTime(latestRecord.timestamp, isSpanish)}
+              </Text>
+            </View>
+          ) : (
+            <Text style={[styles.growthEmptyText, { color: colors.textSecondary }]}>
+              + {t('growth.logFirstMeasurement')}
+            </Text>
+          )}
+          <ChevronRight size={14} color={colors.textMuted} style={{ marginLeft: 'auto' }} />
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   card: {
@@ -164,4 +200,40 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 15,
   },
+  growthRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderTopWidth: 1,
+    marginTop: 14,
+    paddingTop: 10,
+    gap: 8,
+  },
+  growthIconCircle: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  growthTextContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  growthValue: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  growthDot: {
+    fontSize: 14,
+  },
+  growthRecency: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  growthEmptyText: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
 });
+

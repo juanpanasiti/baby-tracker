@@ -13,10 +13,11 @@ import { useBabyStore } from '../store/useBabyStore';
 import { useFeedingStore } from '../store/useFeedingStore';
 import { useDiaperStore } from '../store/useDiaperStore';
 import { useMedicationStore } from '../store/useMedicationStore';
+import { useGrowthStore } from '../store/useGrowthStore';
 import { TimelineItem, type ActivityItem } from '../components/TimelineItem';
 import { Clock } from 'lucide-react-native';
 
-type FilterType = 'all' | 'feedings' | 'diapers' | 'medications';
+type FilterType = 'all' | 'feedings' | 'diapers' | 'medications' | 'growth';
 
 export function TimelineScreen() {
   const { t } = useTranslation();
@@ -26,6 +27,7 @@ export function TimelineScreen() {
   const { feedings, deleteFeeding, openEditFeedingModal } = useFeedingStore();
   const { diapers, deleteDiaper, openEditDiaperModal } = useDiaperStore();
   const { medicationLogs, deleteMedicationLog } = useMedicationStore();
+  const { records: growthRecords, deleteGrowthRecord, openGrowthModal } = useGrowthStore();
 
   const [filter, setFilter] = useState<FilterType>('all');
 
@@ -33,12 +35,14 @@ export function TimelineScreen() {
     ...feedings.map((f) => ({ ...f, itemType: 'feeding' as const })),
     ...diapers.map((d) => ({ ...d, itemType: 'diaper' as const })),
     ...medicationLogs.map((m) => ({ ...m, itemType: 'medication' as const })),
+    ...growthRecords.map((g) => ({ ...g, itemType: 'growth' as const })),
   ].sort((a, b) => b.timestamp - a.timestamp);
 
   const filteredActivities = allActivities.filter((item) => {
     if (filter === 'feedings') return item.itemType === 'feeding';
     if (filter === 'diapers') return item.itemType === 'diaper';
     if (filter === 'medications') return item.itemType === 'medication';
+    if (filter === 'growth') return item.itemType === 'growth';
     return true;
   });
 
@@ -47,7 +51,9 @@ export function TimelineScreen() {
     { key: 'feedings', label: t('timeline.filters.feedings', { defaultValue: 'Feedings' }), count: feedings.length },
     { key: 'diapers', label: t('timeline.filters.diapers', { defaultValue: 'Diapers' }), count: diapers.length },
     { key: 'medications', label: t('timeline.filters.medications', { defaultValue: 'Medications' }), count: medicationLogs.length },
+    { key: 'growth', label: t('timeline.filters.growth', { defaultValue: 'Growth' }), count: growthRecords.length },
   ];
+
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -108,6 +114,8 @@ export function TimelineScreen() {
                 openEditFeedingModal(item);
               } else if (item.itemType === 'diaper') {
                 openEditDiaperModal(item);
+              } else if (item.itemType === 'growth') {
+                openGrowthModal(item);
               }
             }}
             onDelete={() => {
@@ -118,9 +126,12 @@ export function TimelineScreen() {
                 deleteDiaper(baby.id, item.id);
               } else if (item.itemType === 'medication') {
                 deleteMedicationLog(baby.id, item.id);
+              } else if (item.itemType === 'growth') {
+                deleteGrowthRecord(baby.id, item.id);
               }
             }}
           />
+
         )}
       />
     </View>

@@ -2,14 +2,17 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useThemeStore } from '../store/useThemeStore';
-import { type Feeding, type Diaper, type MedicationLog } from '../db/schema';
+import { type Feeding, type Diaper, type MedicationLog, type GrowthRecord } from '../db/schema';
 import { formatRelativeTime, formatTimeOnly } from '../utils/date';
-import { Trash2, Milk, Heart, AlertTriangle, Pencil, Pill } from 'lucide-react-native';
+import { formatWeight, formatHeight } from '../utils/growth';
+import { Trash2, Milk, Heart, AlertTriangle, Pencil, Pill, Scale } from 'lucide-react-native';
 
 export type ActivityItem =
   | ({ itemType: 'feeding' } & Feeding)
   | ({ itemType: 'diaper' } & Diaper)
-  | ({ itemType: 'medication' } & MedicationLog);
+  | ({ itemType: 'medication' } & MedicationLog)
+  | ({ itemType: 'growth' } & GrowthRecord);
+
 
 interface TimelineItemProps {
   item: ActivityItem;
@@ -33,7 +36,62 @@ export function TimelineItem({ item, onEdit, onDelete }: TimelineItemProps) {
     );
   };
 
+  if (item.itemType === 'growth') {
+    return (
+      <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+        <View style={styles.headerRow}>
+          <View style={styles.leftTitleRow}>
+            <View style={[styles.iconCircle, { backgroundColor: colors.primary + '20' }]}>
+              <Scale size={20} color={colors.primary} />
+            </View>
+            <View>
+              <Text style={[styles.title, { color: colors.text }]}>
+                {t('growth.title')}
+              </Text>
+              <Text style={[styles.timeText, { color: colors.textMuted }]}>
+                {formatTimeOnly(item.timestamp)} • {formatRelativeTime(item.timestamp, isSpanish)}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.actionsRow}>
+            {onEdit && (
+              <TouchableOpacity onPress={onEdit} style={styles.actionBtn}>
+                <Pencil size={16} color={colors.primary} />
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity onPress={confirmDelete} style={styles.actionBtn}>
+              <Trash2 size={16} color={colors.textMuted} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Badges */}
+        <View style={styles.badgesRow}>
+          <View style={[styles.badge, { backgroundColor: colors.surfaceSubtle }]}>
+            <Text style={[styles.badgeText, { color: colors.primaryLight }]}>
+              ⚖️ {formatWeight(item.weightKg)}
+            </Text>
+          </View>
+
+          {item.heightCm !== null && item.heightCm !== undefined ? (
+            <View style={[styles.badge, { backgroundColor: colors.surfaceSubtle }]}>
+              <Text style={[styles.badgeText, { color: colors.primaryLight }]}>
+                📏 {formatHeight(item.heightCm)}
+              </Text>
+            </View>
+          ) : null}
+        </View>
+
+        {item.notes ? (
+          <Text style={[styles.notesText, { color: colors.textSecondary }]}>"{item.notes}"</Text>
+        ) : null}
+      </View>
+    );
+  }
+
   if (item.itemType === 'medication') {
+
     return (
       <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
         <View style={styles.headerRow}>
