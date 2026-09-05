@@ -9,6 +9,7 @@ import {
   type MedicationLog,
 } from '../db/schema';
 import { useBabyStore } from './useBabyStore';
+import { syncBabyWidgetsData } from '../services/widgetSyncService';
 
 export interface MedicationWithNextDose extends Medication {
   nextDoseTimestamp: number | null;
@@ -75,6 +76,7 @@ export const useMedicationStore = create<MedicationState>((set, get) => ({
     try {
       const medications = await medicationRepository.getMedicationsByBabyId(babyId);
       set({ medications, isLoading: false });
+      syncBabyWidgetsData();
     } catch {
       set({ isLoading: false });
     }
@@ -133,6 +135,7 @@ export const useMedicationStore = create<MedicationState>((set, get) => ({
 
     await get().loadMedications(babyId);
     set({ isMedicationModalOpen: false, editingMedication: null });
+    syncBabyWidgetsData();
     return created;
   },
 
@@ -148,6 +151,7 @@ export const useMedicationStore = create<MedicationState>((set, get) => ({
 
     await get().loadMedications(babyId);
     set({ isMedicationModalOpen: false, editingMedication: null });
+    syncBabyWidgetsData();
   },
 
   toggleMedicationStatus: async (babyId, babyName, id, newStatus) => {
@@ -161,11 +165,13 @@ export const useMedicationStore = create<MedicationState>((set, get) => ({
     }
 
     await get().loadMedications(babyId);
+    syncBabyWidgetsData();
   },
 
   deleteMedication: async (babyId, id) => {
     await medicationRepository.deleteMedication(id);
     await get().loadMedications(babyId);
+    syncBabyWidgetsData();
   },
 
   logDose: async (medicationId, options) => {
@@ -206,12 +212,14 @@ export const useMedicationStore = create<MedicationState>((set, get) => ({
 
     await Promise.all([get().loadMedications(med.babyId), get().loadMedicationLogs(med.babyId)]);
     set({ isLogDoseModalOpen: false, selectedMedicationForLog: null });
+    syncBabyWidgetsData();
     return createdLog;
   },
 
   deleteMedicationLog: async (babyId, logId) => {
     await medicationRepository.deleteMedicationLog(logId);
     await get().loadMedicationLogs(babyId);
+    syncBabyWidgetsData();
   },
 
   postponeReminder: async (medicationId, minutes = 15) => {
@@ -247,6 +255,8 @@ export const useMedicationStore = create<MedicationState>((set, get) => ({
         isActive: true,
       });
     }
+
+    syncBabyWidgetsData();
   },
 
   openMedicationModal: (medicationToEdit) =>

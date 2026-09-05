@@ -2,7 +2,7 @@
   "expo": {
     "name": "Baby Care",
     "slug": "baby-tracker",
-    "version": "1.8.0",
+    "version": "1.9.0",
     "scheme": "babycare",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -16,7 +16,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.babycare.app",
-      "buildNumber": "13",
+      "buildNumber": "14",
       "infoPlist": {
         "NSRemindersUsageDescription": "Allow Baby Care to set reminders for baby appointments.",
         "NSCalendarsUsageDescription": "Allow Baby Care to sync appointments with your calendar.",
@@ -25,8 +25,7 @@
     },
     "android": {
       "package": "com.babycare.app",
-      "versionCode": 13,
-
+      "versionCode": 14,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#121212"
@@ -81,7 +80,47 @@
       ],
       "expo-asset",
       "expo-font",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      [
+        "react-native-android-widget",
+        {
+          "widgets": [
+            {
+              "name": "BabySchedule1x1",
+              "label": "Baby Schedule 1x1",
+              "minWidth": "60dp",
+              "minHeight": "60dp",
+              "targetCellWidth": 1,
+              "targetCellHeight": 1,
+              "description": "Next feeding and medication compact schedule",
+              "previewImage": "./assets/icon.png",
+              "updatePeriodMillis": 1800000
+            },
+            {
+              "name": "BabySchedule1x2",
+              "label": "Baby Schedule 1x2",
+              "minWidth": "130dp",
+              "minHeight": "60dp",
+              "targetCellWidth": 2,
+              "targetCellHeight": 1,
+              "description": "Next feeding and medication horizontal bar",
+              "previewImage": "./assets/icon.png",
+              "updatePeriodMillis": 1800000
+            },
+            {
+              "name": "BabySchedule2x2",
+              "label": "Baby Schedule 2x2",
+              "minWidth": "140dp",
+              "minHeight": "140dp",
+              "targetCellWidth": 2,
+              "targetCellHeight": 2,
+              "description": "Comprehensive baby schedule with quick actions",
+              "previewImage": "./assets/icon.png",
+              "updatePeriodMillis": 1800000
+            }
+          ]
+        }
+      ]
     ],
     "extra": {
       "eas": {

@@ -43,6 +43,13 @@ Baby Care helps parents and caregivers log and monitor essential baby routines w
   - **Localization**: English (default) and Spanish, persisted locally.
   - **Alarm Sound Customization**: Configurable alarm ringtone (System default, Digital clock, Gentle chimes, Soft bells, Lullaby harp) with bundled high-quality `.wav` audio assets and test preview.
   - **Smart Night Mode**: Optional automatic suggestion that preselects Loud Alarm mode during nighttime hours (22:00 to 07:00).
+- **Android Home Screen Widgets**:
+  - **Multiple Sizes (1x1, 1x2, 2x2)**: Native Android home screen widgets displaying upcoming feeding and medication times at a glance.
+  - **1x1 Compact Split**: Micro dual-indicator displaying next feeding time and upcoming medication dose in a single app icon cell.
+  - **1x2 Horizontal Bar**: Dual-panel horizontal card displaying feeding details on the left and medication/dosage on the right with independent tap targets.
+  - **2x2 Full Dashboard Card**: Detailed schedule overview with baby header, last feeding, next dose details, and 1-tap quick action buttons (`+ Comida`, `✓ Dosis`).
+  - **Contextual Deep Linking**: Tapping directly opens the corresponding modal (`babycare://feeding/new`, `babycare://medications/dose`, or `babycare://dashboard`).
+  - **Automatic State Synchronization**: Pushes fresh schedule data to widgets on every feeding/medication change and when resuming the app.
 
 
 ## Tech Stack
@@ -59,6 +66,8 @@ Baby Care helps parents and caregivers log and monitor essential baby routines w
   - `expo-av`: System alarm stream audio playback and vibration support
   - `expo-calendar`: Native device calendar event creation and sync
   - `expo-image-picker`: Baby profile avatar selection
+  - `expo-linking`: Deep linking support for widget-to-app routing
+  - `react-native-android-widget`: Native Android home screen widgets engine with RemoteViews layout compilation
 - **Localization**: `i18next` + `react-i18next` + `expo-localization`
 - **Icons**: `lucide-react-native`
 
@@ -93,10 +102,17 @@ Baby Care helps parents and caregivers log and monitor essential baby routines w
 │   │   └── repositories/          # Type-safe CRUD repositories (baby, feeding, diaper, appointment, medication, growth)
 │   ├── i18n/                      # English & Spanish translations
 │   ├── screens/                   # Main screens (Dashboard, Timeline, Medications, Appointments, Settings)
-│   ├── services/                  # Notification, Alarm Audio & Calendar native services
+│   ├── services/                  # Notification, Alarm Audio, Calendar & Widget sync services
 │   ├── store/                     # Zustand stores (Theme, Locale, Baby, Feeding, Diaper, Appointment, Medication, Growth, Preferences)
 │   ├── theme/                     # Dark & Light color palettes
-│   └── utils/                     # Growth deltas, age calculation, ID generator, schedule & date formatters
+│   ├── utils/                     # Growth deltas, age calculation, ID generator, schedule & date formatters
+│   └── widgets/                   # Android home screen widgets (1x1, 1x2, 2x2 & task handler)
+│       ├── BabySchedule1x1Widget.tsx # Compact 1x1 split widget
+│       ├── BabySchedule1x2Widget.tsx # Horizontal 1x2 dual-panel widget
+│       ├── BabySchedule2x2Widget.tsx # Comprehensive 2x2 dashboard widget
+│       ├── types.ts                  # Shared widget payload definitions
+│       └── widgetTaskHandler.tsx     # Android widget task dispatcher & storage reader
+
 
 └── openspec/                      # Specification & change proposals
 ```
@@ -125,6 +141,8 @@ npm install
 # Start the Expo development server
 npx expo start
 ```
+
+> **Note on Android Home Screen Widgets**: Home screen widgets are compiled native components (`AppWidgetProvider`). They require a native Android build (`eas build -p android --profile preview` or `npx expo run:android`) and will not display inside the Expo Go sandbox client.
 
 ### Running Tests
 

@@ -4,6 +4,7 @@ import { reminderRepository } from '../db/repositories/reminderRepository';
 import { notificationService } from '../services/notificationService';
 import { usePreferencesStore } from './usePreferencesStore';
 import { type Feeding, type NewFeeding, type Reminder } from '../db/schema';
+import { syncBabyWidgetsData } from '../services/widgetSyncService';
 
 interface FeedingState {
   feedings: Feeding[];
@@ -89,6 +90,7 @@ export const useFeedingStore = create<FeedingState>((set, get) => ({
       }
       const activeReminder = await reminderRepository.getNextActiveFeedingReminder(babyId);
       set({ activeReminder });
+      syncBabyWidgetsData();
     } catch {
       // Ignored
     }
@@ -104,6 +106,7 @@ export const useFeedingStore = create<FeedingState>((set, get) => ({
       const latestFeeding = await feedingRepository.getLatestFeeding(babyId);
       const activeReminder = await reminderRepository.getNextActiveFeedingReminder(babyId);
       set({ feedings, latestFeeding, activeReminder, isLoading: false });
+      syncBabyWidgetsData();
     } catch {
       set({ isLoading: false });
     }
@@ -138,6 +141,8 @@ export const useFeedingStore = create<FeedingState>((set, get) => ({
     // Reset timer if it was running
     get().resetTimer();
 
+    syncBabyWidgetsData();
+
     return created;
   },
 
@@ -145,11 +150,13 @@ export const useFeedingStore = create<FeedingState>((set, get) => ({
     await feedingRepository.updateFeeding(id, data);
     await get().loadFeedings(babyId);
     set({ isFeedingModalOpen: false, editingFeeding: null });
+    syncBabyWidgetsData();
   },
 
   deleteFeeding: async (babyId: string, id: string) => {
     await feedingRepository.deleteFeeding(id);
     await get().loadFeedings(babyId);
+    syncBabyWidgetsData();
   },
 
   scheduleNextFeedingReminder: async (
@@ -189,6 +196,7 @@ export const useFeedingStore = create<FeedingState>((set, get) => ({
     });
 
     set({ activeReminder: reminder, isReminderPromptOpen: false });
+    syncBabyWidgetsData();
   },
 
   postponeActiveReminder: async (babyId: string, babyName: string, minutesToAdd: number) => {
@@ -224,6 +232,7 @@ export const useFeedingStore = create<FeedingState>((set, get) => ({
 
     const updated = await reminderRepository.getNextActiveFeedingReminder(babyId);
     set({ activeReminder: updated });
+    syncBabyWidgetsData();
   },
 
   updateActiveReminder: async (
@@ -272,6 +281,7 @@ export const useFeedingStore = create<FeedingState>((set, get) => ({
 
     const updated = await reminderRepository.getNextActiveFeedingReminder(babyId);
     set({ activeReminder: updated });
+    syncBabyWidgetsData();
   },
 
   cancelActiveReminder: async (babyId: string) => {
@@ -280,6 +290,7 @@ export const useFeedingStore = create<FeedingState>((set, get) => ({
       await notificationService.cancelNotification(current.notificationId);
       await reminderRepository.deactivateRemindersByType(babyId, 'feeding');
       set({ activeReminder: null });
+      syncBabyWidgetsData();
     }
   },
 

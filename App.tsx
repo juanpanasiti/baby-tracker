@@ -20,7 +20,9 @@ import { useAppointmentStore } from './src/store/useAppointmentStore';
 import { usePreferencesStore } from './src/store/usePreferencesStore';
 import { useMedicationStore } from './src/store/useMedicationStore';
 import { useGrowthStore } from './src/store/useGrowthStore';
+import * as Linking from 'expo-linking';
 import { notificationService } from './src/services/notificationService';
+import { syncBabyWidgetsData } from './src/services/widgetSyncService';
 import { DashboardScreen } from './src/screens/DashboardScreen';
 import { TimelineScreen } from './src/screens/TimelineScreen';
 import { MedicationsScreen } from './src/screens/MedicationsScreen';
@@ -81,21 +83,26 @@ export default function App() {
   // When baby profile is available, load related domain records
   useEffect(() => {
     if (baby) {
-      loadFeedings(baby.id);
-      loadDiaperStore(baby.id);
-      loadAppointments(baby.id);
-      loadMedications(baby.id);
-      loadMedicationLogs(baby.id);
-      loadGrowthRecords(baby.id);
+      Promise.all([
+        loadFeedings(baby.id),
+        loadDiaperStore(baby.id),
+        loadAppointments(baby.id),
+        loadMedications(baby.id),
+        loadMedicationLogs(baby.id),
+        loadGrowthRecords(baby.id),
+      ]).then(() => {
+        syncBabyWidgetsData();
+      });
     }
   }, [baby]);
 
 
   // Sync and clean up stale reminders whenever app returns to active/foreground
   useEffect(() => {
-    const subscription = AppState.addEventListener('change', (nextAppState) => {
+    const subscription = AppState.addEventListener('change', async (nextAppState) => {
       if (nextAppState === 'active' && baby) {
-        cleanupStaleReminders(baby.id);
+        await cleanupStaleReminders(baby.id);
+        syncBabyWidgetsData();
       }
     });
 
@@ -103,6 +110,40 @@ export default function App() {
       subscription.remove();
     };
   }, [baby]);
+
+  // Listen for widget deep links (e.g. babycare://feeding/new, babycare://medications/dose)
+  useEffect(() => {
+    const handleDeepLink = (event: { url: string }) => {
+      try {
+        const { hostname, path } = Linking.parse(event.url);
+        const fullPath = [hostname, path].filter(Boolean).join('/').toLowerCase();
+
+        if (fullPath.includes('feeding')) {
+          setActiveTab('dashboard');
+          useFeedingStore.getState().openFeedingModal('breast');
+        } else if (fullPath.includes('medication')) {
+          setActiveTab('medications');
+          useMedicationStore.getState().openLogDoseModal();
+        } else if (fullPath.includes('dashboard')) {
+          setActiveTab('dashboard');
+        }
+      } catch (err) {
+        console.error('[DeepLink] Error handling URL:', err);
+      }
+    };
+
+    const subscription = Linking.addEventListener('url', handleDeepLink);
+
+    Linking.getInitialURL().then((url) => {
+      if (url) {
+        handleDeepLink({ url });
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
 
   if (!isReady) {
     return (

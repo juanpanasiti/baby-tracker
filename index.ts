@@ -3,7 +3,13 @@ import notifee, { EventType } from '@notifee/react-native';
 import { useAlarmRingingStore } from './src/store/useAlarmRingingStore';
 import { initDatabase } from './src/db/client';
 
+import { registerWidgetTaskHandler } from 'react-native-android-widget';
+import { widgetTaskHandler } from './src/widgets/widgetTaskHandler';
+
 import App from './App';
+
+// Register Android Home Screen Widgets Task Handler
+registerWidgetTaskHandler(widgetTaskHandler);
 
 // Handle background notification actions (Silence, Snooze, Take Dose, Dismiss) when app is minimized or killed
 notifee.onBackgroundEvent(async ({ type, detail }) => {
